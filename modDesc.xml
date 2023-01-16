@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="72">
+    <author>Bauern Modding</author>
+    <version>1.0.0.0</version>
+    <title>
+        <de>JCB PACK</de>
+    </title>
+    <description>
+        <en><![CDATA[Waescheleine]]></en>
+    </description>
+    <iconFilename>textures/modIcon.dds</iconFilename>
+    <multiplayer supported="true" />
+	
+	<extraSourceFiles>
+		<sourceFile filename="scripts/categorizer.lua"/>
+
+	</extraSourceFiles>
+	
+    <storeItems>
+        <storeItem  xmlFilename="xml/fastrac8330.xml"/>	
+         <storeItem  xmlFilename="xml/fastrac4220.xml"/>	
+   </storeItems>
+	
+	    <newcategory name="BM_Fahrzeuge"       				title="BM Fahrzeuge"    			type="VEHICLE"      img="textures/icon.dds" />
+
+	
+	<l10n>
+		<text name="topGrill">
+            <en>Top Grid</en>
+            <de>Oberer Lüftungseinlass</de>
+        </text>
+		<text name="engineGrill">
+            <en>Engine Grid</en>
+            <de>Motor Grill</de>
+        </text>
+        <!-- Interactive Control -->
+        <text name="actionIC_foldWarningSign">        <en>IC: Fold warning signs</en>         <de>IC: Warntafeln einklappen</de>      </text>
+        <text name="actionIC_unfoldWarningSign">        <en>IC: Unfold warning signs</en>         <de>IC: Warntafeln ausklappen</de>      </text>
+        <text name="actionIC_beaconLightsOn">        <en>IC: Beaconlights on</en>         <de>IC: Rundumleuchten anschalten</de>      </text>
+        <text name="actionIC_beaconLightsOff">        <en>IC: Beaconlight off</en>         <de>IC: Rundumleuchten ausschalten</de>      </text>
+        <text name="actionIC_foldSteeringBase">        <en>IC: Fold steeringbase</en>         <de>IC: Lenkkonsole hoch klappen</de>      </text>
+        <text name="actionIC_unfoldSteeringBase">        <en>IC: Unfold steeringbase</en>         <de>IC: Lenkkonsole herunter klappen</de>      </text>
+        <text name="actionIC_moveMonitor">        <en>IC: Move display</en>         <de>IC: Monitor verschieben</de>      </text>
+        <text name="actionIC_lowerMonitor">        <en>IC: Lower display</en>         <de>IC: Monitor ausschieben</de>      </text>
+        <text name="actionIC_upperMonitor">        <en>IC: Pushup display</en>         <de>IC: Monitor einschieben</de>      </text>
+        <text name="actionIC_lowerArmrest">        <en>IC: Lower Armrest</en>         <de>IC: Armlehne herunter klappen</de>      </text>
+        <text name="actionIC_upperArmrest">        <en>IC: Pushup Armrest</en>         <de>IC: Armlehne hoch klappen</de>      </text>
+        <text name="actionIC_IC">        <en>Interactive control</en>         <de>Interactive Control</de>      </text>
+        <text name="actionIC_MC">        <en>Mouse control</en>         <de>Maus Control</de>      </text>
+        <text name="actionIC_Animation">        <en>Animation</en>         <de>Animationen</de>      </text>
+	</l10n>		
+</modDesc>
