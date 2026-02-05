@@ -18,9 +18,13 @@ Quick Start
 -----------
 1) Unity 2022.3 LTS oeffnen.
 2) Projektordner waehlen: `factory_game_template_unity`
-3) Neue Scene erstellen, z.B. `Assets/Scenes/FactoryTemplate`.
-4) Leeres GameObject anlegen -> Script `TemplateBootstrap` zuweisen.
-5) Play druecken.
+3) Scene oeffnen: `Assets/Scenes/FactoryTemplate.unity`
+4) Play druecken.
+
+Optional: Eigene Scene
+----------------------
+Falls du eine eigene Scene willst:
+- Leeres GameObject anlegen -> Script `TemplateBootstrap` zuweisen.
 
 Controls (Default)
 ------------------

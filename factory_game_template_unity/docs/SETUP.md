@@ -4,13 +4,14 @@ Setup (Unity)
 Dieser Guide zeigt, wie du die Template-Scene in wenigen Minuten
 aufsetzt.
 
-1) Neue Scene anlegen
----------------------
-- File > New Scene
-- Speichern als `Assets/Scenes/FactoryTemplate.unity`
+1) Scene oeffnen
+----------------
+- `Assets/Scenes/FactoryTemplate.unity`
+- Play druecken
 
-2) Bootstrap-Objekt
--------------------
+2) Optional: Eigene Scene
+-------------------------
+- File > New Scene
 - Leeres GameObject: `Bootstrap`
 - Script `TemplateBootstrap` hinzufuegen
 - Play druecken
