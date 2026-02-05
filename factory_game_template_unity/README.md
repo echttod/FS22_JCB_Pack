@@ -10,7 +10,7 @@ Highlights
 - First-Person Controller (CharacterController).
 - Sichtbare Haende (Viewmodel), optionaler Platzhalter im Code.
 - Build-Mode mit Ghost-Preview, Grid-Snap und Rotation.
-- Beispiel-Buildables: Conveyor, Smelter, Storage (runtime erzeugt).
+- Beispiel-Buildables: Miner, Conveyor, Smelter, Storage (runtime erzeugt).
 - Resource Nodes mit Interaktion.
 - HUD Overlay (OnGUI) fuer Status und Controls.
 
@@ -53,6 +53,7 @@ docs/
 
 Naechste Schritte (Ideen)
 -------------------------
+- Phase 1 Loop: Miner -> Conveyor -> Smelter -> Storage
 - Produktionsketten (Input/Output, Rezepte)
 - Items + Conveyor-Logik
 - Stromversorgung/Power Grid

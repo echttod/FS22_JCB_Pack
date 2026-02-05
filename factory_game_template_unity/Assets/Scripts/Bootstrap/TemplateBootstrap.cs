@@ -95,13 +95,28 @@ public class TemplateBootstrap : MonoBehaviour
         GameObject library = new GameObject("BuildableLibrary");
         library.transform.SetParent(transform, false);
 
-        GameObject conveyor = CreateBuildablePrefab("Conveyor", new Vector3(2f, 0.2f, 0.6f), new Color(0.1f, 0.6f, 0.9f, 1f));
-        GameObject smelter = CreateBuildablePrefab("Smelter", new Vector3(1.5f, 1.5f, 1.5f), new Color(0.8f, 0.4f, 0.2f, 1f));
+        GameObject conveyor = CreateBuildablePrefab("Conveyor", new Vector3(0.6f, 0.2f, 2f), new Color(0.1f, 0.6f, 0.9f, 1f));
+        conveyor.AddComponent<ConveyorBelt>();
+
+        GameObject miner = CreateBuildablePrefab("Miner", new Vector3(1.2f, 1f, 1.2f), new Color(0.2f, 0.7f, 0.3f, 1f));
+        miner.AddComponent<Miner>();
+        Buildable minerBuildable = miner.GetComponent<Buildable>();
+        if (minerBuildable != null)
+        {
+            minerBuildable.allowResourceOverlap = true;
+        }
+        AddDrill(miner);
+
+        GameObject smelter = CreateBuildablePrefab("Smelter", new Vector3(1.6f, 1.4f, 1.6f), new Color(0.8f, 0.4f, 0.2f, 1f));
+        smelter.AddComponent<Smelter>();
+
         GameObject storage = CreateBuildablePrefab("Storage", new Vector3(2f, 2f, 2f), new Color(0.6f, 0.6f, 0.6f, 1f));
+        storage.AddComponent<StorageContainer>();
 
         AddChimney(smelter, new Vector3(0.5f, 1.2f, 0.5f));
 
         RegisterPrefab(catalog, library.transform, conveyor);
+        RegisterPrefab(catalog, library.transform, miner);
         RegisterPrefab(catalog, library.transform, smelter);
         RegisterPrefab(catalog, library.transform, storage);
     }
@@ -159,6 +174,27 @@ public class TemplateBootstrap : MonoBehaviour
         }
 
         Collider col = chimney.GetComponent<Collider>();
+        if (col != null)
+        {
+            Destroy(col);
+        }
+    }
+
+    private static void AddDrill(GameObject target)
+    {
+        GameObject drill = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        drill.name = "Drill";
+        drill.transform.SetParent(target.transform, false);
+        drill.transform.localScale = new Vector3(0.25f, 0.7f, 0.25f);
+        drill.transform.localPosition = new Vector3(0f, 0.2f, 0f);
+
+        Renderer renderer = drill.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+        }
+
+        Collider col = drill.GetComponent<Collider>();
         if (col != null)
         {
             Destroy(col);

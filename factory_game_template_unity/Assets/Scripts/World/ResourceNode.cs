@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ResourceNode : MonoBehaviour
+public class ResourceNode : MonoBehaviour, IInteractable
 {
     public string resourceId = "IronOre";
     public int amount = 1000;
@@ -8,6 +8,19 @@ public class ResourceNode : MonoBehaviour
     public void Interact()
     {
         Debug.Log("ResourceNode: " + resourceId + " amount=" + amount);
+    }
+
+    public bool TryExtract(int requestedAmount, out string id)
+    {
+        id = resourceId;
+        if (amount <= 0 || requestedAmount <= 0)
+        {
+            return false;
+        }
+
+        int taken = Mathf.Min(requestedAmount, amount);
+        amount -= taken;
+        return taken > 0;
     }
 
     private void OnDrawGizmosSelected()

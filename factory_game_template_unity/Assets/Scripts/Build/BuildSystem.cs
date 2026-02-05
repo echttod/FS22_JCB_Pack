@@ -5,9 +5,12 @@ public class BuildSystem : MonoBehaviour
     public BuildCatalog catalog;
     public Camera playerCamera;
     public LayerMask placementMask = ~0;
+    public LayerMask blockMask = ~0;
     public float maxDistance = 6f;
     public float gridSize = 1f;
     public float rotationStep = 90f;
+    public float maxGroundSlope = 12f;
+    public float overlapPadding = 0.02f;
 
     public KeyCode toggleKey = KeyCode.B;
     public KeyCode nextKey = KeyCode.E;
@@ -133,10 +136,10 @@ public class BuildSystem : MonoBehaviour
             Vector3 snapped = SnapToGrid(hit.point);
             snapped.y += _ghostYOffset;
             _ghost.transform.position = snapped;
-            _hasPlacementHit = true;
+            _hasPlacementHit = IsPlacementValid(hit.normal);
             if (_ghostScript != null)
             {
-                _ghostScript.SetValid(true);
+                _ghostScript.SetValid(_hasPlacementHit);
             }
         }
         else
@@ -161,6 +164,7 @@ public class BuildSystem : MonoBehaviour
         GameObject placed = Instantiate(_currentPrefab, pos, rot);
         placed.name = _currentPrefab.name;
         placed.SetActive(true);
+        NotifyPlaced(placed);
     }
 
     private void RebuildGhost()
@@ -228,5 +232,98 @@ public class BuildSystem : MonoBehaviour
         float x = Mathf.Round(position.x / gridSize) * gridSize;
         float z = Mathf.Round(position.z / gridSize) * gridSize;
         return new Vector3(x, position.y, z);
+    }
+
+    private bool IsPlacementValid(Vector3 hitNormal)
+    {
+        if (_ghost == null)
+        {
+            return false;
+        }
+
+        Buildable buildable = _ghost.GetComponent<Buildable>();
+        if (buildable != null && buildable.requiresFlatGround)
+        {
+            float angle = Vector3.Angle(hitNormal, Vector3.up);
+            if (angle > maxGroundSlope)
+            {
+                return false;
+            }
+        }
+
+        Bounds bounds = GetGhostBounds();
+        Vector3 halfExtents = bounds.extents - Vector3.one * overlapPadding;
+        halfExtents = Vector3.Max(halfExtents, Vector3.one * 0.01f);
+        Collider[] hits = Physics.OverlapBox(bounds.center, halfExtents, Quaternion.identity, blockMask);
+        foreach (Collider hit in hits)
+        {
+            if (hit == null || hit.isTrigger)
+            {
+                continue;
+            }
+
+            if (hit.transform.IsChildOf(_ghost.transform))
+            {
+                continue;
+            }
+
+            if (hit.gameObject.name == "TemplateGround")
+            {
+                continue;
+            }
+
+            ResourceNode node = hit.GetComponentInParent<ResourceNode>();
+            if (node != null)
+            {
+                if (buildable != null && buildable.allowResourceOverlap)
+                {
+                    continue;
+                }
+                return false;
+            }
+
+            if (hit.GetComponentInParent<Buildable>() != null)
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private Bounds GetGhostBounds()
+    {
+        Collider col = _ghost.GetComponent<Collider>();
+        if (col != null)
+        {
+            return col.bounds;
+        }
+
+        Renderer renderer = _ghost.GetComponentInChildren<Renderer>();
+        if (renderer != null)
+        {
+            return renderer.bounds;
+        }
+
+        return new Bounds(_ghost.transform.position, Vector3.one);
+    }
+
+    private static void NotifyPlaced(GameObject placed)
+    {
+        if (placed == null)
+        {
+            return;
+        }
+
+        MonoBehaviour[] behaviours = placed.GetComponentsInChildren<MonoBehaviour>();
+        foreach (MonoBehaviour behaviour in behaviours)
+        {
+            if (behaviour is IPlacementAware aware)
+            {
+                aware.OnPlaced();
+            }
+        }
     }
 }

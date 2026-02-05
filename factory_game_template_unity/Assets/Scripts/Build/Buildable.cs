@@ -5,6 +5,7 @@ public class Buildable : MonoBehaviour
     [Header("Placement")]
     public Vector3 footprint = new Vector3(1f, 1f, 1f);
     public bool requiresFlatGround = true;
+    public bool allowResourceOverlap = false;
 
     public Bounds GetWorldBounds()
     {

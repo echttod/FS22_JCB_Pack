@@ -5,7 +5,7 @@ Gameplay Loop (Template)
    - Resource Nodes finden und markieren.
 
 2) Build
-   - Extractor/Conveyor/Smelter/Storage platzieren.
+   - Miner/Conveyor/Smelter/Storage platzieren.
    - Layout optimieren.
 
 3) Automate

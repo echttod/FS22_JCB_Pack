@@ -23,6 +23,7 @@ Das Script erstellt automatisch:
 - HUD Overlay
 - Ground Plane + Directional Light
 - Beispiel Resource Nodes
+- Buildables: Miner, Conveyor, Smelter, Storage
 
 3) Optional: Eigene Prefabs
 ---------------------------
