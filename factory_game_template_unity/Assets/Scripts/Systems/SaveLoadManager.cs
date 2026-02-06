@@ -8,6 +8,7 @@ public class SaveLoadManager : MonoBehaviour
     public BuildCatalog catalog;
     public BuildSystem buildSystem;
     public BuildCostProvider costProvider;
+    public ResearchManager researchManager;
     public Transform libraryRoot;
     public string saveFileName = "factory_save.json";
     public KeyCode saveKey = KeyCode.F5;
@@ -34,7 +35,8 @@ public class SaveLoadManager : MonoBehaviour
         {
             buildables = new List<BuildableSaveData>(),
             resources = new List<ResourceNodeSaveData>(),
-            depots = new List<DepotSaveData>()
+            depots = new List<DepotSaveData>(),
+            research = researchManager != null ? researchManager.GetSaveData() : null
         };
 
         BuildableId[] buildables = FindObjectsOfType<BuildableId>();
@@ -73,7 +75,8 @@ public class SaveLoadManager : MonoBehaviour
             {
                 entry.smelterInput = smelter.GetInputSnapshot();
                 entry.smelterOutput = smelter.GetOutputSnapshot();
-                entry.smelterCurrent = smelter.GetCurrentOutputId();
+                entry.smelterActive = smelter.GetActiveRecipeId();
+                entry.smelterProcessing = smelter.GetProcessingRecipeId();
                 entry.smelterTimer = smelter.GetCurrentTimer();
             }
 
@@ -171,6 +174,15 @@ public class SaveLoadManager : MonoBehaviour
                 costProvider.Refresh();
             }
 
+            if (researchManager != null && data.research != null)
+            {
+                researchManager.RestoreSaveData(data.research);
+                if (buildSystem != null)
+                {
+                    buildSystem.RefreshCatalog();
+                }
+            }
+
             Debug.Log("Loaded from: " + SavePath);
         }
         catch (Exception ex)
@@ -240,7 +252,7 @@ public class SaveLoadManager : MonoBehaviour
             Smelter smelter = placed.GetComponent<Smelter>();
             if (smelter != null)
             {
-                smelter.RestoreState(entry.smelterInput, entry.smelterOutput, entry.smelterCurrent, entry.smelterTimer);
+                smelter.RestoreState(entry.smelterInput, entry.smelterOutput, entry.smelterActive, entry.smelterProcessing, entry.smelterTimer);
             }
 
             Miner miner = placed.GetComponent<Miner>();
@@ -354,6 +366,7 @@ public class SaveLoadManager : MonoBehaviour
         public List<BuildableSaveData> buildables;
         public List<ResourceNodeSaveData> resources;
         public List<DepotSaveData> depots;
+        public ResearchSaveData research;
     }
 
     [Serializable]
@@ -365,7 +378,8 @@ public class SaveLoadManager : MonoBehaviour
         public ItemStack[] storage;
         public ItemStack[] smelterInput;
         public ItemStack[] smelterOutput;
-        public string smelterCurrent;
+        public string smelterActive;
+        public string smelterProcessing;
         public float smelterTimer;
         public ItemStack[] minerBuffer;
         public ConveyorItemState[] conveyorItems;

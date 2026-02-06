@@ -14,6 +14,7 @@ public class ConveyorBelt : MonoBehaviour, IItemInput, IPlacementAware
     [Header("Linking")]
     public float connectDistance = 1.2f;
     public LayerMask connectMask = ~0;
+    public PowerConsumer powerConsumer;
 
     private readonly List<MovingItem> _items = new List<MovingItem>();
     private IItemInput _target;
@@ -29,10 +30,15 @@ public class ConveyorBelt : MonoBehaviour, IItemInput, IPlacementAware
     {
         EnsurePoints();
         RefreshTarget();
+        EnsurePower();
     }
 
     private void Update()
     {
+        if (GetPowerFactor() <= 0.01f)
+        {
+            return;
+        }
         UpdateItems();
         TryDeliverAtEnd();
     }
@@ -136,7 +142,7 @@ public class ConveyorBelt : MonoBehaviour, IItemInput, IPlacementAware
                 maxProgress = Mathf.Max(0f, _items[i + 1].progress - itemSpacing);
             }
 
-            item.progress = Mathf.Min(item.progress + speed * Time.deltaTime, maxProgress);
+            item.progress = Mathf.Min(item.progress + speed * Time.deltaTime * GetPowerFactor(), maxProgress);
             if (item.visual != null)
             {
                 item.visual.transform.position = start + dir * item.progress;
@@ -217,6 +223,19 @@ public class ConveyorBelt : MonoBehaviour, IItemInput, IPlacementAware
             }
         }
         _items.Clear();
+    }
+
+    private void EnsurePower()
+    {
+        if (powerConsumer == null)
+        {
+            powerConsumer = GetComponent<PowerConsumer>();
+        }
+    }
+
+    private float GetPowerFactor()
+    {
+        return powerConsumer != null ? powerConsumer.PowerRatio : 1f;
     }
 
     private GameObject CreateVisual(ItemStack stack)

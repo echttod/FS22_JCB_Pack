@@ -7,6 +7,7 @@ public class TemplateBootstrap : MonoBehaviour
     public bool createGround = true;
     public Vector3 groundSize = new Vector3(40f, 1f, 40f);
     public bool createLight = true;
+    public bool usePrefabs = true;
 
     [Header("Player")]
     public Vector3 playerStart = new Vector3(0f, 2f, -6f);
@@ -85,21 +86,30 @@ public class TemplateBootstrap : MonoBehaviour
         GameObject systems = new GameObject("GameSystems");
         BuildCatalog catalog = systems.AddComponent<BuildCatalog>();
         BuildCostProvider costProvider = systems.AddComponent<BuildCostProvider>();
+        ResearchManager researchManager = systems.AddComponent<ResearchManager>();
+        RecipeBook recipeBook = systems.AddComponent<RecipeBook>();
+        PowerManager powerManager = systems.AddComponent<PowerManager>();
         BuildSystem buildSystem = systems.AddComponent<BuildSystem>();
         buildSystem.catalog = catalog;
         buildSystem.costProvider = costProvider;
+        buildSystem.researchManager = researchManager;
         buildSystem.playerCamera = camera;
 
         HudOverlay hud = cameraObj.AddComponent<HudOverlay>();
         hud.buildSystem = buildSystem;
         hud.costProvider = costProvider;
+        hud.researchManager = researchManager;
+        hud.powerManager = powerManager;
 
         CreateBuildDepot();
+        SeedRecipes(recipeBook);
+        SeedTechTree(researchManager);
         CreateDefaultBuildables(catalog);
 
         SaveLoadManager saveLoad = systems.AddComponent<SaveLoadManager>();
         saveLoad.catalog = catalog;
         saveLoad.costProvider = costProvider;
+        saveLoad.researchManager = researchManager;
         saveLoad.buildSystem = buildSystem;
         saveLoad.libraryRoot = _libraryRoot;
         costProvider.Refresh();
@@ -111,175 +121,115 @@ public class TemplateBootstrap : MonoBehaviour
         library.transform.SetParent(transform, false);
         _libraryRoot = library.transform;
 
-        GameObject conveyor = CreateBuildablePrefab("Conveyor", new Vector3(0.6f, 0.2f, 2f), new Color(0.1f, 0.6f, 0.9f, 1f));
-        conveyor.AddComponent<ConveyorBelt>();
-
-        GameObject miner = CreateBuildablePrefab("Miner", new Vector3(1.2f, 1f, 1.2f), new Color(0.2f, 0.7f, 0.3f, 1f));
-        miner.AddComponent<Miner>();
-        Buildable minerBuildable = miner.GetComponent<Buildable>();
-        if (minerBuildable != null)
+        GameObject conveyor = GetOrCreatePrefab("Conveyor", BuildableVisualType.Conveyor, go =>
         {
-            minerBuildable.allowResourceOverlap = true;
-        }
-        AddDrill(miner);
+            go.AddComponent<ConveyorBelt>();
+            PowerConsumer consumer = go.AddComponent<PowerConsumer>();
+            consumer.demand = 0.2f;
+        });
 
-        GameObject smelter = CreateBuildablePrefab("Smelter", new Vector3(1.6f, 1.4f, 1.6f), new Color(0.8f, 0.4f, 0.2f, 1f));
-        smelter.AddComponent<Smelter>();
+        GameObject miner = GetOrCreatePrefab("Miner", BuildableVisualType.Miner, go =>
+        {
+            go.AddComponent<Miner>();
+            PowerConsumer consumer = go.AddComponent<PowerConsumer>();
+            consumer.demand = 1.2f;
+        });
 
-        GameObject storage = CreateBuildablePrefab("Storage", new Vector3(2f, 2f, 2f), new Color(0.6f, 0.6f, 0.6f, 1f));
-        storage.AddComponent<StorageContainer>();
+        GameObject smelter = GetOrCreatePrefab("Smelter", BuildableVisualType.Smelter, go =>
+        {
+            go.AddComponent<Smelter>();
+            PowerConsumer consumer = go.AddComponent<PowerConsumer>();
+            consumer.demand = 1.4f;
+        });
 
-        GameObject depot = CreateBuildablePrefab("Depot", new Vector3(1.8f, 1.2f, 1.8f), new Color(0.25f, 0.3f, 0.55f, 1f));
-        StorageContainer depotStorage = depot.AddComponent<StorageContainer>();
-        depotStorage.capacity = 200;
-        depotStorage.isBuildDepot = true;
-        AddDepotModel(depot);
+        GameObject storage = GetOrCreatePrefab("Storage", BuildableVisualType.Storage, go =>
+        {
+            go.AddComponent<StorageContainer>();
+        });
 
-        AddChimney(smelter, new Vector3(0.5f, 1.2f, 0.5f));
+        GameObject depot = GetOrCreatePrefab("Depot", BuildableVisualType.Depot, go =>
+        {
+            StorageContainer depotStorage = go.AddComponent<StorageContainer>();
+            depotStorage.capacity = 200;
+            depotStorage.isBuildDepot = true;
+        });
+
+        GameObject generator = GetOrCreatePrefab("Generator", BuildableVisualType.Generator, go =>
+        {
+            PowerProducer producer = go.AddComponent<PowerProducer>();
+            producer.output = 12f;
+        });
 
         RegisterPrefab(catalog, library.transform, conveyor, new List<BuildCost>
         {
             new BuildCost(ItemTypes.IronOre, 1)
-        });
+        }, 0);
         RegisterPrefab(catalog, library.transform, miner, new List<BuildCost>
         {
             new BuildCost(ItemTypes.IronOre, 5),
             new BuildCost(ItemTypes.Limestone, 2)
-        });
+        }, 1);
         RegisterPrefab(catalog, library.transform, smelter, new List<BuildCost>
         {
             new BuildCost(ItemTypes.IronOre, 8),
             new BuildCost(ItemTypes.CopperOre, 4)
-        });
+        }, 1);
         RegisterPrefab(catalog, library.transform, storage, new List<BuildCost>
         {
             new BuildCost(ItemTypes.IronOre, 4),
             new BuildCost(ItemTypes.Limestone, 4)
-        });
+        }, 0);
         RegisterPrefab(catalog, library.transform, depot, new List<BuildCost>
         {
             new BuildCost(ItemTypes.IronOre, 6),
             new BuildCost(ItemTypes.Limestone, 6)
-        });
+        }, 0);
+        RegisterPrefab(catalog, library.transform, generator, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronOre, 8),
+            new BuildCost(ItemTypes.CopperOre, 6)
+        }, 1);
     }
 
-    private static void RegisterPrefab(BuildCatalog catalog, Transform parent, GameObject prefab, List<BuildCost> costs)
+    private void RegisterPrefab(BuildCatalog catalog, Transform parent, GameObject prefab, List<BuildCost> costs, int requiredTier)
     {
-        prefab.transform.SetParent(parent, false);
-        prefab.SetActive(false);
-        catalog.Register(prefab.name, prefab, costs);
+        if (prefab == null)
+        {
+            return;
+        }
+
+        if (parent != null && prefab.scene.IsValid())
+        {
+            prefab.transform.SetParent(parent, false);
+            prefab.SetActive(false);
+        }
+
+        catalog.Register(prefab.name, prefab, costs, requiredTier);
     }
 
-    private static GameObject CreateBuildablePrefab(string name, Vector3 size, Color color)
+    private GameObject GetOrCreatePrefab(string name, BuildableVisualType preset, System.Action<GameObject> setup)
     {
-        GameObject root = new GameObject(name);
-        Buildable buildable = root.AddComponent<Buildable>();
-        buildable.footprint = size;
-        BuildableId id = root.AddComponent<BuildableId>();
+        GameObject prefab = null;
+        if (usePrefabs)
+        {
+            prefab = Resources.Load<GameObject>("Buildables/" + name);
+        }
+
+        if (prefab != null)
+        {
+            return prefab;
+        }
+
+        GameObject runtime = new GameObject(name);
+        Buildable buildable = runtime.AddComponent<Buildable>();
+        BuildableId id = runtime.AddComponent<BuildableId>();
         id.id = name;
 
-        GameObject mesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        mesh.name = "Mesh";
-        mesh.transform.SetParent(root.transform, false);
-        mesh.transform.localScale = size;
-        mesh.transform.localPosition = new Vector3(0f, size.y / 2f, 0f);
+        BuildableVisualPreset visual = runtime.AddComponent<BuildableVisualPreset>();
+        visual.preset = preset;
 
-        Renderer renderer = mesh.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material.color = color;
-        }
-
-        Collider meshCol = mesh.GetComponent<Collider>();
-        if (meshCol != null)
-        {
-            Destroy(meshCol);
-        }
-
-        BoxCollider col = root.AddComponent<BoxCollider>();
-        col.size = size;
-        col.center = new Vector3(0f, size.y / 2f, 0f);
-
-        return root;
-    }
-
-    private static void AddChimney(GameObject target, Vector3 size)
-    {
-        GameObject chimney = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        chimney.name = "Chimney";
-        chimney.transform.SetParent(target.transform, false);
-        chimney.transform.localScale = size;
-        chimney.transform.localPosition = new Vector3(0.3f, size.y, 0.3f);
-
-        Renderer renderer = chimney.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material.color = new Color(0.25f, 0.25f, 0.25f, 1f);
-        }
-
-        Collider col = chimney.GetComponent<Collider>();
-        if (col != null)
-        {
-            Destroy(col);
-        }
-    }
-
-    private static void AddDrill(GameObject target)
-    {
-        GameObject drill = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        drill.name = "Drill";
-        drill.transform.SetParent(target.transform, false);
-        drill.transform.localScale = new Vector3(0.25f, 0.7f, 0.25f);
-        drill.transform.localPosition = new Vector3(0f, 0.2f, 0f);
-
-        Renderer renderer = drill.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material.color = new Color(0.2f, 0.2f, 0.2f, 1f);
-        }
-
-        Collider col = drill.GetComponent<Collider>();
-        if (col != null)
-        {
-            Destroy(col);
-        }
-    }
-
-    private static void AddDepotModel(GameObject target)
-    {
-        GameObject crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        crate.name = "Crate";
-        crate.transform.SetParent(target.transform, false);
-        crate.transform.localScale = new Vector3(0.8f, 0.6f, 0.8f);
-        crate.transform.localPosition = new Vector3(-0.35f, 0.4f, 0.2f);
-        Renderer crateRenderer = crate.GetComponent<Renderer>();
-        if (crateRenderer != null)
-        {
-            crateRenderer.material.color = new Color(0.5f, 0.35f, 0.2f, 1f);
-        }
-
-        GameObject beacon = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        beacon.name = "Beacon";
-        beacon.transform.SetParent(target.transform, false);
-        beacon.transform.localScale = new Vector3(0.2f, 0.8f, 0.2f);
-        beacon.transform.localPosition = new Vector3(0.5f, 0.6f, -0.4f);
-        Renderer beaconRenderer = beacon.GetComponent<Renderer>();
-        if (beaconRenderer != null)
-        {
-            beaconRenderer.material.color = new Color(0.9f, 0.8f, 0.2f, 1f);
-        }
-
-        Collider crateCol = crate.GetComponent<Collider>();
-        if (crateCol != null)
-        {
-            Destroy(crateCol);
-        }
-
-        Collider beaconCol = beacon.GetComponent<Collider>();
-        if (beaconCol != null)
-        {
-            Destroy(beaconCol);
-        }
+        setup?.Invoke(runtime);
+        return runtime;
     }
 
     private void SpawnResourceNodes()
@@ -326,21 +276,92 @@ public class TemplateBootstrap : MonoBehaviour
         _buildDepot.capacity = 200;
         _buildDepot.isBuildDepot = true;
 
-        GameObject mesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        mesh.name = "Mesh";
-        mesh.transform.SetParent(depot.transform, false);
-        mesh.transform.localScale = new Vector3(1.6f, 1f, 1.6f);
-        mesh.transform.localPosition = new Vector3(0f, 0.5f, 0f);
-        Renderer renderer = mesh.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material.color = new Color(0.2f, 0.2f, 0.5f, 1f);
-        }
-
-        AddDepotModel(depot);
+        BuildableVisualPreset visual = depot.AddComponent<BuildableVisualPreset>();
+        visual.preset = BuildableVisualType.Depot;
 
         _buildDepot.Add(new ItemStack(ItemTypes.IronOre, 40));
         _buildDepot.Add(new ItemStack(ItemTypes.CopperOre, 20));
         _buildDepot.Add(new ItemStack(ItemTypes.Limestone, 20));
+    }
+
+    private static void SeedRecipes(RecipeBook recipeBook)
+    {
+        if (recipeBook == null)
+        {
+            return;
+        }
+
+        recipeBook.recipes.Clear();
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "IronIngot",
+            displayName = "Iron Ingot",
+            machineId = "Smelter",
+            requiredTier = 1,
+            processTime = 2f,
+            inputs = new List<BuildCost> { new BuildCost(ItemTypes.IronOre, 1) },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.IronIngot, 1) }
+        });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "CopperIngot",
+            displayName = "Copper Ingot",
+            machineId = "Smelter",
+            requiredTier = 1,
+            processTime = 2f,
+            inputs = new List<BuildCost> { new BuildCost(ItemTypes.CopperOre, 1) },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.CopperIngot, 1) }
+        });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "Concrete",
+            displayName = "Concrete",
+            machineId = "Smelter",
+            requiredTier = 1,
+            processTime = 1.5f,
+            inputs = new List<BuildCost> { new BuildCost(ItemTypes.Limestone, 2) },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.Concrete, 1) }
+        });
+    }
+
+    private static void SeedTechTree(ResearchManager researchManager)
+    {
+        if (researchManager == null)
+        {
+            return;
+        }
+
+        List<TechNode> nodes = new List<TechNode>
+        {
+            new TechNode
+            {
+                id = "tier1_automation",
+                displayName = "Tier 1: Automation",
+                description = "Unlocks Miner, Smelter and Generator.",
+                unlockTier = 1,
+                costs = new List<BuildCost>
+                {
+                    new BuildCost(ItemTypes.IronOre, 10),
+                    new BuildCost(ItemTypes.Limestone, 5)
+                }
+            },
+            new TechNode
+            {
+                id = "tier2_efficiency",
+                displayName = "Tier 2: Efficiency",
+                description = "Future tech tier placeholder.",
+                unlockTier = 2,
+                costs = new List<BuildCost>
+                {
+                    new BuildCost(ItemTypes.IronIngot, 10),
+                    new BuildCost(ItemTypes.CopperIngot, 5)
+                },
+                prerequisites = new List<string> { "tier1_automation" }
+            }
+        };
+
+        researchManager.SeedDefaultNodes(nodes);
     }
 }

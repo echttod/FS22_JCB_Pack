@@ -7,22 +7,37 @@ public class HudOverlay : MonoBehaviour
 {
     public BuildSystem buildSystem;
     public BuildCostProvider costProvider;
+    public ResearchManager researchManager;
+    public PowerManager powerManager;
     public string title = "Factory Game Template";
     public Vector2 padding = new Vector2(16f, 16f);
     public int fontSize = 14;
+    public KeyCode toggleResearchKey = KeyCode.R;
 
     private Canvas _canvas;
     private Text _statusText;
     private Text _controlsText;
     private RectTransform _catalogPanel;
+    private RectTransform _researchPanel;
     private readonly List<CatalogButton> _catalogButtons = new List<CatalogButton>();
+    private readonly List<ResearchButton> _researchButtons = new List<ResearchButton>();
     private string[] _cachedIds = new string[0];
+    private int _researchHash;
+    private bool _researchVisible;
 
     private class CatalogButton
     {
         public string id;
         public Button button;
         public Text label;
+    }
+
+    private class ResearchButton
+    {
+        public string id;
+        public Button button;
+        public Text label;
+        public Text costs;
     }
 
     private void Start()
@@ -37,6 +52,7 @@ public class HudOverlay : MonoBehaviour
         UpdateStatus();
         UpdateCatalogVisibility();
         UpdateCatalogSelection();
+        UpdateResearchVisibility();
     }
 
     private void BuildUI()
@@ -50,6 +66,11 @@ public class HudOverlay : MonoBehaviour
         RectTransform catalogPanel = CreatePanel("CatalogPanel", _canvas.transform, new Vector2(-padding.x, -padding.y), new Vector2(240f, 320f), new Vector2(1f, 1f), new Vector2(1f, 1f));
         _catalogPanel = catalogPanel;
         CreateText(catalogPanel, "CatalogTitle", "Build Catalog", fontSize + 1);
+
+        RectTransform researchPanel = CreatePanel("ResearchPanel", _canvas.transform, new Vector2(padding.x, -260f), new Vector2(360f, 240f), new Vector2(0f, 1f), new Vector2(0f, 1f));
+        _researchPanel = researchPanel;
+        CreateText(researchPanel, "ResearchTitle", "Research", fontSize + 1);
+        _researchPanel.gameObject.SetActive(false);
     }
 
     private void UpdateStatus()
@@ -68,19 +89,23 @@ public class HudOverlay : MonoBehaviour
         }
 
         string resources = costProvider != null ? costProvider.GetSummary() : "No depot";
+        string tier = researchManager != null ? researchManager.CurrentTier.ToString() : "-";
+        string power = powerManager != null ? $"{powerManager.TotalSupply:0.0}/{powerManager.TotalDemand:0.0}" : "-";
 
         _statusText.text = title
                            + "\nBuild Mode: " + (buildSystem != null && buildSystem.IsBuildMode ? "ON" : "OFF")
                            + "\nSelected: " + selected
                            + "\nCosts: " + costs
                            + "\nAffordable: " + affordable
-                           + "\nResources: " + resources;
+                           + "\nResources: " + resources
+                           + "\nTier: " + tier
+                           + "\nPower: " + power;
 
         if (_controlsText != null)
         {
             _controlsText.text = "B: Build Mode  Q/E: Switch  Z/C: Rotate\n"
                                  + "LMB: Place  F: Interact  Esc: Unlock Mouse\n"
-                                 + "F5: Save  F9: Load";
+                                 + "R: Research  F5: Save  F9: Load";
         }
     }
 
@@ -130,6 +155,36 @@ public class HudOverlay : MonoBehaviour
         }
     }
 
+    private void UpdateResearchVisibility()
+    {
+        if (_researchPanel == null)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(toggleResearchKey))
+        {
+            _researchVisible = !_researchVisible;
+            _researchPanel.gameObject.SetActive(_researchVisible);
+            if (_researchVisible)
+            {
+                RefreshResearchPanel();
+            }
+        }
+
+        if (!_researchVisible)
+        {
+            return;
+        }
+
+        int hash = GetResearchHash();
+        if (hash != _researchHash)
+        {
+            _researchHash = hash;
+            RefreshResearchPanel();
+        }
+    }
+
     private void RefreshCatalog()
     {
         _cachedIds = buildSystem != null ? buildSystem.GetIds() : new string[0];
@@ -170,6 +225,74 @@ public class HudOverlay : MonoBehaviour
         }
     }
 
+    private void RefreshResearchPanel()
+    {
+        if (_researchPanel == null)
+        {
+            return;
+        }
+
+        for (int i = _researchPanel.childCount - 1; i >= 0; i--)
+        {
+            Transform child = _researchPanel.GetChild(i);
+            if (child.name != "ResearchTitle")
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        _researchButtons.Clear();
+        if (researchManager == null)
+        {
+            CreateText(_researchPanel, "ResearchNone", "No research system.", fontSize);
+            return;
+        }
+
+        List<TechNode> locked = researchManager.GetLockedNodes();
+        if (locked.Count == 0)
+        {
+            CreateText(_researchPanel, "ResearchComplete", "All research unlocked.", fontSize);
+            return;
+        }
+
+        foreach (TechNode node in locked)
+        {
+            if (node == null)
+            {
+                continue;
+            }
+
+            ResearchButton entry = new ResearchButton();
+            entry.id = node.id;
+            entry.button = CreateButton(_researchPanel, node.displayName);
+            entry.label = entry.button.GetComponentInChildren<Text>();
+            entry.costs = CreateText(entry.button.GetComponent<RectTransform>(), "Costs", FormatCosts(node.costs), fontSize - 2);
+            entry.costs.alignment = TextAnchor.LowerRight;
+            entry.costs.rectTransform.anchorMin = new Vector2(0f, 0f);
+            entry.costs.rectTransform.anchorMax = new Vector2(1f, 1f);
+            entry.costs.rectTransform.offsetMin = new Vector2(10f, 4f);
+            entry.costs.rectTransform.offsetMax = new Vector2(-10f, -4f);
+
+            bool affordable = costProvider == null || costProvider.CanAfford(node.costs, Vector3.zero);
+            entry.label.color = affordable ? Color.white : new Color(1f, 0.5f, 0.5f, 1f);
+
+            entry.button.onClick.AddListener(() =>
+            {
+                if (researchManager != null && researchManager.TryResearch(node.id, costProvider))
+                {
+                    if (buildSystem != null)
+                    {
+                        buildSystem.RefreshCatalog();
+                    }
+                    RefreshResearchPanel();
+                }
+            });
+
+            _researchButtons.Add(entry);
+        }
+    }
+
+
     private bool IdsChanged(string[] ids)
     {
         if (ids == null)
@@ -191,6 +314,17 @@ public class HudOverlay : MonoBehaviour
         }
 
         return false;
+    }
+
+    private int GetResearchHash()
+    {
+        if (researchManager == null)
+        {
+            return 0;
+        }
+
+        int lockedCount = researchManager.GetLockedNodes().Count;
+        return lockedCount + researchManager.CurrentTier * 100;
     }
 
     private Canvas CreateCanvas()

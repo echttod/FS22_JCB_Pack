@@ -21,16 +21,22 @@ Das Script erstellt automatisch:
 - Kamera + sichtbare Haende
 - BuildSystem + BuildCatalog
 - BuildCostProvider + BuildDepot (Startressourcen)
+- ResearchManager + RecipeBook
+- PowerManager (Grid)
 - HUD Overlay (UGUI)
 - Ground Plane + Directional Light
 - Beispiel Resource Nodes
-- Buildables: Miner, Conveyor, Smelter, Storage, Depot
+- Buildables: Miner, Conveyor, Smelter, Storage, Depot, Generator
 
 Save/Load
 ---------
 - F5 speichert
 - F9 laedt
-- Speichert Buildables, Storage/Smelter/Miner und Resource-Mengen
+- Speichert Buildables, Storage/Smelter/Miner/Conveyor und Resource-Mengen
+
+Research
+--------
+- R oeffnet Research Panel
 
 3) Optional: Eigene Prefabs
 ---------------------------

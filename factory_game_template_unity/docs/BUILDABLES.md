@@ -29,4 +29,11 @@ Tipps
 - Build-Kosten werden in `TemplateBootstrap` als `BuildCost` gesetzt.
 - Build-Kosten werden aus dem Build-Depot entnommen.
 - Depot-Buildable ist ein Storage mit `isBuildDepot = true`.
+- Generator liefert Power (siehe `PowerManager`).
+
+Prefabs
+-------
+Die Buildables liegen als Prefabs in `Assets/Resources/Buildables`.
+Falls Prefabs fehlen, erstellt `TemplateBootstrap` sie automatisch zur
+Laufzeit.
 

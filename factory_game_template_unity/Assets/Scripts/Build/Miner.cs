@@ -6,6 +6,7 @@ public class Miner : MonoBehaviour, IPlacementAware
     public float productionInterval = 1.5f;
     public int outputCapacity = 20;
     public float nodeSearchRadius = 1.2f;
+    public PowerConsumer powerConsumer;
 
     [Header("Output")]
     public float outputInterval = 0.25f;
@@ -25,6 +26,7 @@ public class Miner : MonoBehaviour, IPlacementAware
         EnsureOutputPoint();
         FindNode();
         RefreshTarget();
+        EnsurePower();
     }
 
     private void Update()
@@ -52,7 +54,7 @@ public class Miner : MonoBehaviour, IPlacementAware
             return;
         }
 
-        _productionTimer += Time.deltaTime;
+        _productionTimer += Time.deltaTime * GetPowerFactor();
         if (_productionTimer < productionInterval)
         {
             return;
@@ -73,7 +75,7 @@ public class Miner : MonoBehaviour, IPlacementAware
             return;
         }
 
-        _outputTimer += Time.deltaTime;
+        _outputTimer += Time.deltaTime * GetPowerFactor();
         if (_outputTimer < outputInterval)
         {
             return;
@@ -159,5 +161,18 @@ public class Miner : MonoBehaviour, IPlacementAware
         {
             _buffer = new ItemInventory(outputCapacity);
         }
+    }
+
+    private void EnsurePower()
+    {
+        if (powerConsumer == null)
+        {
+            powerConsumer = GetComponent<PowerConsumer>();
+        }
+    }
+
+    private float GetPowerFactor()
+    {
+        return powerConsumer != null ? powerConsumer.PowerRatio : 1f;
     }
 }

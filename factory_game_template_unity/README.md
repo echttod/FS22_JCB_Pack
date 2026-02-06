@@ -11,11 +11,15 @@ Highlights
 - Sichtbare Haende (Viewmodel), optionaler Platzhalter im Code.
 - Build-Mode mit Ghost-Preview, Grid-Snap und Rotation.
 - Build-Katalog UI im Build-Mode.
-- Beispiel-Buildables: Miner, Conveyor, Smelter, Storage, Depot (runtime erzeugt).
-- Build-Kosten aus dem Build-Depot/Depots (Startressourcen werden gesetzt).
-- Save/Load (F5/F9, inkl. Storage/Smelter/Miner-Buffer).
+- Beispiel-Buildables: Miner, Conveyor, Smelter, Storage, Depot, Generator.
+- Build-Kosten aus Depots (naechstes Depot wird bevorzugt).
+- Research/Tech-Tier System (R).
+- Recipe System fuer Smelter.
+- Power Grid (Generatoren vs. Verbraucher).
+- Save/Load (F5/F9, inkl. Storage/Smelter/Miner/Conveyor).
+- Prefabs in `Assets/Resources/Buildables`.
 - Resource Nodes mit Interaktion.
-- HUD Overlay (UGUI) fuer Status und Controls.
+- HUD Overlay (UGUI) fuer Status, Power und Research.
 
 Quick Start
 -----------
@@ -40,6 +44,7 @@ Controls (Default)
 - Q/E: Buildable wechseln
 - Z/C: Buildable drehen
 - Linke Maustaste: Platzieren
+- R: Research
 - F5: Speichern
 - F9: Laden
 - Esc: Maus freigeben
@@ -53,6 +58,9 @@ Assets/
     Player/        Controller + Haende
     Build/         Build-Mode + Buildables
     Systems/       Save/Load + Kosten
+    Power/         Power Grid
+    Recipes/       Recipe Book
+    Tech/          Research/Tech Tree
     World/         Resource Nodes
     UI/            HUD Overlay
 docs/

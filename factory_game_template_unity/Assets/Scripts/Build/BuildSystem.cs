@@ -5,6 +5,7 @@ public class BuildSystem : MonoBehaviour
 {
     public BuildCatalog catalog;
     public BuildCostProvider costProvider;
+    public ResearchManager researchManager;
     public Camera playerCamera;
     public LayerMask placementMask = ~0;
     public LayerMask blockMask = ~0;
@@ -52,7 +53,8 @@ public class BuildSystem : MonoBehaviour
             return;
         }
 
-        _ids = catalog.GetIds();
+        int maxTier = researchManager != null ? researchManager.CurrentTier : int.MaxValue;
+        _ids = catalog.GetIds(maxTier);
         _selectedIndex = _ids.Length > 0 ? Mathf.Clamp(_selectedIndex, 0, _ids.Length - 1) : 0;
         RebuildGhost();
     }

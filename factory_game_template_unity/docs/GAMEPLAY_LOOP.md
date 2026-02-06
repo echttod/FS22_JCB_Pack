@@ -6,6 +6,7 @@ Gameplay Loop (Template)
 
 2) Build
    - Miner/Conveyor/Smelter/Storage platzieren.
+   - Generator fuer Power setzen.
    - Layout optimieren.
 
 3) Automate
@@ -13,7 +14,7 @@ Gameplay Loop (Template)
    - Outputs in Storage sammeln.
 
 4) Expand
-   - Neue Tech-Stufen, effizientere Maschinen, groessere Fabrik.
+   - Research/Tech-Stufen, effizientere Maschinen, groessere Fabrik.
 
 Hinweis:
 Dies ist ein Startpunkt. Ergaenze Rezepte, Stromversorgung,

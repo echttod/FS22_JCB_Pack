@@ -8,6 +8,7 @@ public class BuildableEntry
     public string id;
     public GameObject prefab;
     public List<BuildCost> costs = new List<BuildCost>();
+    public int requiredTier = 0;
 }
 
 public class BuildCatalog : MonoBehaviour
@@ -16,10 +17,15 @@ public class BuildCatalog : MonoBehaviour
 
     public string[] GetIds()
     {
+        return GetIds(int.MaxValue);
+    }
+
+    public string[] GetIds(int maxTier)
+    {
         List<string> ids = new List<string>();
         foreach (BuildableEntry entry in buildables)
         {
-            if (entry != null && !string.IsNullOrEmpty(entry.id))
+            if (entry != null && !string.IsNullOrEmpty(entry.id) && entry.requiredTier <= maxTier)
             {
                 ids.Add(entry.id);
             }
@@ -60,6 +66,11 @@ public class BuildCatalog : MonoBehaviour
 
     public void Register(string id, GameObject prefab, List<BuildCost> costs)
     {
+        Register(id, prefab, costs, 0);
+    }
+
+    public void Register(string id, GameObject prefab, List<BuildCost> costs, int requiredTier)
+    {
         if (string.IsNullOrEmpty(id) || prefab == null)
         {
             return;
@@ -70,6 +81,7 @@ public class BuildCatalog : MonoBehaviour
         {
             existing.prefab = prefab;
             existing.costs = costs ?? new List<BuildCost>();
+            existing.requiredTier = requiredTier;
             return;
         }
 
@@ -77,7 +89,8 @@ public class BuildCatalog : MonoBehaviour
         {
             id = id,
             prefab = prefab,
-            costs = costs ?? new List<BuildCost>()
+            costs = costs ?? new List<BuildCost>(),
+            requiredTier = requiredTier
         };
         buildables.Add(entry);
     }
