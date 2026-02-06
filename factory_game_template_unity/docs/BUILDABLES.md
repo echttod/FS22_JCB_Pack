@@ -27,4 +27,5 @@ Tipps
 - Colliders nur am Root halten, damit Bounds sauber sind.
 - Miner/Conveyor/Smelter/Storage nutzen die Item-Skripte.
 - Build-Kosten werden in `TemplateBootstrap` als `BuildCost` gesetzt.
+- Build-Kosten werden aus dem Build-Depot entnommen.
 

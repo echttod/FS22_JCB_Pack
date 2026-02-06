@@ -23,8 +23,7 @@ public class Smelter : MonoBehaviour, IItemInput, IPlacementAware, IInteractable
 
     private void Awake()
     {
-        _input = new ItemInventory(inputCapacity);
-        _output = new ItemInventory(outputCapacity);
+        EnsureInventories();
         BuildRecipes();
         EnsurePorts();
         RefreshTarget();
@@ -48,11 +47,13 @@ public class Smelter : MonoBehaviour, IItemInput, IPlacementAware, IInteractable
             return false;
         }
 
+        EnsureInventories();
         return _input.Add(stack.id, stack.amount) > 0;
     }
 
     public void Interact()
     {
+        EnsureInventories();
         Debug.Log("Smelter Input: " + _input.GetSummary() + " | Output: " + _output.GetSummary());
     }
 
@@ -63,8 +64,57 @@ public class Smelter : MonoBehaviour, IItemInput, IPlacementAware, IInteractable
         _recipes[ItemTypes.Limestone] = ItemTypes.Concrete;
     }
 
+    public ItemStack[] GetInputSnapshot()
+    {
+        EnsureInventories();
+        return _input.GetStacks().ToArray();
+    }
+
+    public ItemStack[] GetOutputSnapshot()
+    {
+        EnsureInventories();
+        return _output.GetStacks().ToArray();
+    }
+
+    public string GetCurrentOutputId()
+    {
+        return _currentOutput;
+    }
+
+    public float GetCurrentTimer()
+    {
+        return _processTimer;
+    }
+
+    public void RestoreState(ItemStack[] input, ItemStack[] output, string currentOutput, float remainingTime)
+    {
+        EnsureInventories();
+        _input.Clear();
+        _output.Clear();
+
+        if (input != null)
+        {
+            foreach (ItemStack stack in input)
+            {
+                _input.Add(stack.id, stack.amount);
+            }
+        }
+
+        if (output != null)
+        {
+            foreach (ItemStack stack in output)
+            {
+                _output.Add(stack.id, stack.amount);
+            }
+        }
+
+        _currentOutput = currentOutput;
+        _processTimer = Mathf.Max(0f, remainingTime);
+    }
+
     private void Process()
     {
+        EnsureInventories();
         if (!string.IsNullOrEmpty(_currentOutput))
         {
             _processTimer -= Time.deltaTime;
@@ -106,6 +156,7 @@ public class Smelter : MonoBehaviour, IItemInput, IPlacementAware, IInteractable
 
     private void PushOutput()
     {
+        EnsureInventories();
         if (!_output.HasAny())
         {
             return;
@@ -148,6 +199,19 @@ public class Smelter : MonoBehaviour, IItemInput, IPlacementAware, IInteractable
 
         inputPoint.localPosition = new Vector3(0f, 0.4f, -0.9f);
         outputPoint.localPosition = new Vector3(0f, 0.4f, 0.9f);
+    }
+
+    private void EnsureInventories()
+    {
+        if (_input == null)
+        {
+            _input = new ItemInventory(inputCapacity);
+        }
+
+        if (_output == null)
+        {
+            _output = new ItemInventory(outputCapacity);
+        }
     }
 
     private void RefreshTarget()

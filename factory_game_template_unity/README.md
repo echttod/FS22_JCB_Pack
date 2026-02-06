@@ -12,10 +12,10 @@ Highlights
 - Build-Mode mit Ghost-Preview, Grid-Snap und Rotation.
 - Build-Katalog UI im Build-Mode.
 - Beispiel-Buildables: Miner, Conveyor, Smelter, Storage (runtime erzeugt).
-- Build-Kosten + Wallet (Startressourcen werden gesetzt).
-- Save/Load (F5/F9).
+- Build-Kosten aus dem Build-Depot (Startressourcen werden gesetzt).
+- Save/Load (F5/F9, inkl. Storage/Smelter/Miner-Buffer).
 - Resource Nodes mit Interaktion.
-- HUD Overlay (OnGUI) fuer Status und Controls.
+- HUD Overlay (UGUI) fuer Status und Controls.
 
 Quick Start
 -----------
@@ -49,8 +49,10 @@ Projektstruktur
 Assets/
   Scripts/
     Bootstrap/     Runtime-Setup fuer die Szene
+    Items/         Items + BuildDepot/Kosten
     Player/        Controller + Haende
     Build/         Build-Mode + Buildables
+    Systems/       Save/Load + Kosten
     World/         Resource Nodes
     UI/            HUD Overlay
 docs/

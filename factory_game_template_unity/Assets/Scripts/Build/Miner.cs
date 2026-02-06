@@ -21,7 +21,7 @@ public class Miner : MonoBehaviour, IPlacementAware
 
     private void Awake()
     {
-        _buffer = new ItemInventory(outputCapacity);
+        EnsureBuffer();
         EnsureOutputPoint();
         FindNode();
         RefreshTarget();
@@ -46,6 +46,7 @@ public class Miner : MonoBehaviour, IPlacementAware
             return;
         }
 
+        EnsureBuffer();
         if (_buffer.Count >= _buffer.Capacity)
         {
             return;
@@ -66,6 +67,7 @@ public class Miner : MonoBehaviour, IPlacementAware
 
     private void PushOutput()
     {
+        EnsureBuffer();
         if (!_buffer.HasAny())
         {
             return;
@@ -128,5 +130,34 @@ public class Miner : MonoBehaviour, IPlacementAware
     private void RefreshTarget()
     {
         _target = ItemLinker.FindInput(outputPoint, connectDistance, connectMask, transform);
+    }
+
+    public ItemStack[] GetBufferSnapshot()
+    {
+        EnsureBuffer();
+        return _buffer.GetStacks().ToArray();
+    }
+
+    public void RestoreBuffer(ItemStack[] stacks)
+    {
+        EnsureBuffer();
+        _buffer.Clear();
+        if (stacks == null)
+        {
+            return;
+        }
+
+        foreach (ItemStack stack in stacks)
+        {
+            _buffer.Add(stack.id, stack.amount);
+        }
+    }
+
+    private void EnsureBuffer()
+    {
+        if (_buffer == null)
+        {
+            _buffer = new ItemInventory(outputCapacity);
+        }
     }
 }

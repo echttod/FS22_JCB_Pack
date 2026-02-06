@@ -20,8 +20,8 @@ Das Script erstellt automatisch:
 - Player mit CharacterController
 - Kamera + sichtbare Haende
 - BuildSystem + BuildCatalog
-- BuildWallet (Startressourcen)
-- HUD Overlay
+- BuildCostProvider + BuildDepot (Startressourcen)
+- HUD Overlay (UGUI)
 - Ground Plane + Directional Light
 - Beispiel Resource Nodes
 - Buildables: Miner, Conveyor, Smelter, Storage
@@ -30,6 +30,7 @@ Save/Load
 ---------
 - F5 speichert
 - F9 laedt
+- Speichert Buildables, Storage/Smelter/Miner und Resource-Mengen
 
 3) Optional: Eigene Prefabs
 ---------------------------

@@ -7,7 +7,7 @@ public class SaveLoadManager : MonoBehaviour
 {
     public BuildCatalog catalog;
     public BuildSystem buildSystem;
-    public BuildWallet wallet;
+    public BuildCostProvider costProvider;
     public Transform libraryRoot;
     public string saveFileName = "factory_save.json";
     public KeyCode saveKey = KeyCode.F5;
@@ -34,7 +34,7 @@ public class SaveLoadManager : MonoBehaviour
         {
             buildables = new List<BuildableSaveData>(),
             resources = new List<ResourceNodeSaveData>(),
-            wallet = wallet != null ? wallet.GetSnapshot().ToArray() : new ItemStack[0]
+            depots = new List<DepotSaveData>()
         };
 
         BuildableId[] buildables = FindObjectsOfType<BuildableId>();
@@ -68,6 +68,21 @@ public class SaveLoadManager : MonoBehaviour
                 entry.storage = storage.GetSnapshot();
             }
 
+            Smelter smelter = buildable.GetComponent<Smelter>();
+            if (smelter != null)
+            {
+                entry.smelterInput = smelter.GetInputSnapshot();
+                entry.smelterOutput = smelter.GetOutputSnapshot();
+                entry.smelterCurrent = smelter.GetCurrentOutputId();
+                entry.smelterTimer = smelter.GetCurrentTimer();
+            }
+
+            Miner miner = buildable.GetComponent<Miner>();
+            if (miner != null)
+            {
+                entry.minerBuffer = miner.GetBufferSnapshot();
+            }
+
             data.buildables.Add(entry);
         }
 
@@ -83,6 +98,21 @@ public class SaveLoadManager : MonoBehaviour
             {
                 name = node.name,
                 amount = node.Amount
+            });
+        }
+
+        StorageContainer[] storages = FindObjectsOfType<StorageContainer>();
+        foreach (StorageContainer storage in storages)
+        {
+            if (storage == null || !storage.isBuildDepot)
+            {
+                continue;
+            }
+
+            data.depots.Add(new DepotSaveData
+            {
+                name = storage.name,
+                items = storage.GetSnapshot()
             });
         }
 
@@ -118,15 +148,16 @@ public class SaveLoadManager : MonoBehaviour
 
             RestoreBuildables(data.buildables);
             RestoreResources(data.resources);
-
-            if (wallet != null)
-            {
-                wallet.RestoreSnapshot(data.wallet);
-            }
+            RestoreDepots(data.depots);
 
             if (buildSystem != null)
             {
                 buildSystem.RefreshCatalog();
+            }
+
+            if (costProvider != null)
+            {
+                costProvider.Refresh();
             }
 
             Debug.Log("Loaded from: " + SavePath);
@@ -195,6 +226,18 @@ public class SaveLoadManager : MonoBehaviour
                 storage.Restore(entry.storage);
             }
 
+            Smelter smelter = placed.GetComponent<Smelter>();
+            if (smelter != null)
+            {
+                smelter.RestoreState(entry.smelterInput, entry.smelterOutput, entry.smelterCurrent, entry.smelterTimer);
+            }
+
+            Miner miner = placed.GetComponent<Miner>();
+            if (miner != null && entry.minerBuffer != null)
+            {
+                miner.RestoreBuffer(entry.minerBuffer);
+            }
+
             NotifyPlaced(placed);
         }
     }
@@ -230,6 +273,37 @@ public class SaveLoadManager : MonoBehaviour
         }
     }
 
+    private void RestoreDepots(List<DepotSaveData> depots)
+    {
+        if (depots == null)
+        {
+            return;
+        }
+
+        StorageContainer[] storages = FindObjectsOfType<StorageContainer>();
+        Dictionary<string, StorageContainer> lookup = new Dictionary<string, StorageContainer>();
+        foreach (StorageContainer storage in storages)
+        {
+            if (storage != null && storage.isBuildDepot && !lookup.ContainsKey(storage.name))
+            {
+                lookup.Add(storage.name, storage);
+            }
+        }
+
+        foreach (DepotSaveData depot in depots)
+        {
+            if (depot == null || string.IsNullOrEmpty(depot.name))
+            {
+                continue;
+            }
+
+            if (lookup.TryGetValue(depot.name, out StorageContainer storage))
+            {
+                storage.Restore(depot.items);
+            }
+        }
+    }
+
     private static void NotifyPlaced(GameObject placed)
     {
         if (placed == null)
@@ -252,7 +326,7 @@ public class SaveLoadManager : MonoBehaviour
     {
         public List<BuildableSaveData> buildables;
         public List<ResourceNodeSaveData> resources;
-        public ItemStack[] wallet;
+        public List<DepotSaveData> depots;
     }
 
     [Serializable]
@@ -262,6 +336,11 @@ public class SaveLoadManager : MonoBehaviour
         public Vector3 position;
         public Vector3 rotation;
         public ItemStack[] storage;
+        public ItemStack[] smelterInput;
+        public ItemStack[] smelterOutput;
+        public string smelterCurrent;
+        public float smelterTimer;
+        public ItemStack[] minerBuffer;
     }
 
     [Serializable]
@@ -269,5 +348,12 @@ public class SaveLoadManager : MonoBehaviour
     {
         public string name;
         public int amount;
+    }
+
+    [Serializable]
+    private class DepotSaveData
+    {
+        public string name;
+        public ItemStack[] items;
     }
 }

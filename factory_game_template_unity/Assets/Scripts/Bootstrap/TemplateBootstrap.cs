@@ -12,6 +12,7 @@ public class TemplateBootstrap : MonoBehaviour
     public Vector3 playerStart = new Vector3(0f, 2f, -6f);
 
     private Transform _libraryRoot;
+    private StorageContainer _buildDepot;
 
     private void Start()
     {
@@ -83,24 +84,25 @@ public class TemplateBootstrap : MonoBehaviour
 
         GameObject systems = new GameObject("GameSystems");
         BuildCatalog catalog = systems.AddComponent<BuildCatalog>();
-        BuildWallet wallet = systems.AddComponent<BuildWallet>();
+        BuildCostProvider costProvider = systems.AddComponent<BuildCostProvider>();
         BuildSystem buildSystem = systems.AddComponent<BuildSystem>();
         buildSystem.catalog = catalog;
-        buildSystem.wallet = wallet;
+        buildSystem.costProvider = costProvider;
         buildSystem.playerCamera = camera;
 
         HudOverlay hud = cameraObj.AddComponent<HudOverlay>();
         hud.buildSystem = buildSystem;
-        hud.wallet = wallet;
+        hud.costProvider = costProvider;
 
-        SeedWallet(wallet);
+        CreateBuildDepot();
         CreateDefaultBuildables(catalog);
 
         SaveLoadManager saveLoad = systems.AddComponent<SaveLoadManager>();
         saveLoad.catalog = catalog;
-        saveLoad.wallet = wallet;
+        saveLoad.costProvider = costProvider;
         saveLoad.buildSystem = buildSystem;
         saveLoad.libraryRoot = _libraryRoot;
+        costProvider.Refresh();
     }
 
     private void CreateDefaultBuildables(BuildCatalog catalog)
@@ -262,15 +264,33 @@ public class TemplateBootstrap : MonoBehaviour
         resourceNode.amount = 1000;
     }
 
-    private static void SeedWallet(BuildWallet wallet)
+    private void CreateBuildDepot()
     {
-        if (wallet == null)
+        if (_buildDepot != null)
         {
             return;
         }
 
-        wallet.Add(ItemTypes.IronOre, 40);
-        wallet.Add(ItemTypes.CopperOre, 20);
-        wallet.Add(ItemTypes.Limestone, 20);
+        GameObject depot = new GameObject("BuildDepot");
+        depot.transform.position = playerStart + new Vector3(2f, 0f, 2f);
+
+        _buildDepot = depot.AddComponent<StorageContainer>();
+        _buildDepot.capacity = 200;
+        _buildDepot.isBuildDepot = true;
+
+        GameObject mesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        mesh.name = "Mesh";
+        mesh.transform.SetParent(depot.transform, false);
+        mesh.transform.localScale = new Vector3(1.6f, 1f, 1.6f);
+        mesh.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+        Renderer renderer = mesh.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = new Color(0.2f, 0.2f, 0.5f, 1f);
+        }
+
+        _buildDepot.Add(new ItemStack(ItemTypes.IronOre, 40));
+        _buildDepot.Add(new ItemStack(ItemTypes.CopperOre, 20));
+        _buildDepot.Add(new ItemStack(ItemTypes.Limestone, 20));
     }
 }

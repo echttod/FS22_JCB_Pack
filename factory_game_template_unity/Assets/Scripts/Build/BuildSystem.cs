@@ -4,7 +4,7 @@ using UnityEngine;
 public class BuildSystem : MonoBehaviour
 {
     public BuildCatalog catalog;
-    public BuildWallet wallet;
+    public BuildCostProvider costProvider;
     public Camera playerCamera;
     public LayerMask placementMask = ~0;
     public LayerMask blockMask = ~0;
@@ -172,10 +172,10 @@ public class BuildSystem : MonoBehaviour
             return;
         }
 
-        if (requireCosts && wallet != null)
+        if (requireCosts && costProvider != null)
         {
             List<BuildCost> costs = GetSelectedCosts();
-            if (!wallet.Spend(costs))
+            if (!costProvider.Spend(costs))
             {
                 return;
             }
@@ -265,12 +265,12 @@ public class BuildSystem : MonoBehaviour
             return true;
         }
 
-        if (wallet == null)
+        if (costProvider == null)
         {
             return true;
         }
 
-        return wallet.CanAfford(GetSelectedCosts());
+        return costProvider.CanAfford(GetSelectedCosts());
     }
 
     private float ComputeYOffset(GameObject target)
