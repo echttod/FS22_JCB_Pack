@@ -160,6 +160,13 @@ public class TemplateBootstrap : MonoBehaviour
             producer.output = 12f;
         });
 
+        GameObject pole = GetOrCreatePrefab("PowerPole", BuildableVisualType.PowerPole, go =>
+        {
+            PowerNode node = go.AddComponent<PowerNode>();
+            node.linkRadius = 6f;
+            node.isPole = true;
+        });
+
         RegisterPrefab(catalog, library.transform, conveyor, new List<BuildCost>
         {
             new BuildCost(ItemTypes.IronOre, 1)
@@ -188,6 +195,11 @@ public class TemplateBootstrap : MonoBehaviour
         {
             new BuildCost(ItemTypes.IronOre, 8),
             new BuildCost(ItemTypes.CopperOre, 6)
+        }, 1);
+        RegisterPrefab(catalog, library.transform, pole, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronOre, 2),
+            new BuildCost(ItemTypes.CopperOre, 2)
         }, 1);
     }
 
@@ -324,6 +336,28 @@ public class TemplateBootstrap : MonoBehaviour
             inputs = new List<BuildCost> { new BuildCost(ItemTypes.Limestone, 2) },
             outputs = new List<ItemStack> { new ItemStack(ItemTypes.Concrete, 1) }
         });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "IronPlate",
+            displayName = "Iron Plate",
+            machineId = "Smelter",
+            requiredTier = 2,
+            processTime = 2.5f,
+            inputs = new List<BuildCost> { new BuildCost(ItemTypes.IronIngot, 2) },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.IronPlate, 1) }
+        });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "CopperWire",
+            displayName = "Copper Wire",
+            machineId = "Smelter",
+            requiredTier = 2,
+            processTime = 1.8f,
+            inputs = new List<BuildCost> { new BuildCost(ItemTypes.CopperIngot, 1) },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.CopperWire, 2) }
+        });
     }
 
     private static void SeedTechTree(ResearchManager researchManager)
@@ -349,6 +383,19 @@ public class TemplateBootstrap : MonoBehaviour
             },
             new TechNode
             {
+                id = "tier1_power",
+                displayName = "Tier 1: Power Grid",
+                description = "Unlocks Power Poles and stabilizes power.",
+                unlockTier = 1,
+                costs = new List<BuildCost>
+                {
+                    new BuildCost(ItemTypes.CopperOre, 6),
+                    new BuildCost(ItemTypes.IronOre, 6)
+                },
+                prerequisites = new List<string> { "tier1_automation" }
+            },
+            new TechNode
+            {
                 id = "tier2_efficiency",
                 displayName = "Tier 2: Efficiency",
                 description = "Future tech tier placeholder.",
@@ -359,6 +406,19 @@ public class TemplateBootstrap : MonoBehaviour
                     new BuildCost(ItemTypes.CopperIngot, 5)
                 },
                 prerequisites = new List<string> { "tier1_automation" }
+            },
+            new TechNode
+            {
+                id = "tier2_logistics",
+                displayName = "Tier 2: Logistics",
+                description = "Unlocks advanced recipes.",
+                unlockTier = 2,
+                costs = new List<BuildCost>
+                {
+                    new BuildCost(ItemTypes.IronPlate, 4),
+                    new BuildCost(ItemTypes.CopperWire, 6)
+                },
+                prerequisites = new List<string> { "tier2_efficiency" }
             }
         };
 

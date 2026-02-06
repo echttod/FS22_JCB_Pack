@@ -91,6 +91,7 @@ public class HudOverlay : MonoBehaviour
         string resources = costProvider != null ? costProvider.GetSummary() : "No depot";
         string tier = researchManager != null ? researchManager.CurrentTier.ToString() : "-";
         string power = powerManager != null ? $"{powerManager.TotalSupply:0.0}/{powerManager.TotalDemand:0.0}" : "-";
+        string networks = powerManager != null ? powerManager.NetworkCount.ToString() : "-";
 
         _statusText.text = title
                            + "\nBuild Mode: " + (buildSystem != null && buildSystem.IsBuildMode ? "ON" : "OFF")
@@ -99,7 +100,8 @@ public class HudOverlay : MonoBehaviour
                            + "\nAffordable: " + affordable
                            + "\nResources: " + resources
                            + "\nTier: " + tier
-                           + "\nPower: " + power;
+                           + "\nPower: " + power
+                           + "\nNetworks: " + networks;
 
         if (_controlsText != null)
         {
@@ -273,8 +275,9 @@ public class HudOverlay : MonoBehaviour
             entry.costs.rectTransform.offsetMin = new Vector2(10f, 4f);
             entry.costs.rectTransform.offsetMax = new Vector2(-10f, -4f);
 
-            bool affordable = costProvider == null || costProvider.CanAfford(node.costs, Vector3.zero);
-            entry.label.color = affordable ? Color.white : new Color(1f, 0.5f, 0.5f, 1f);
+            bool canResearch = researchManager != null && researchManager.CanResearch(node, costProvider);
+            entry.label.color = canResearch ? Color.white : new Color(1f, 0.5f, 0.5f, 1f);
+            entry.button.interactable = canResearch;
 
             entry.button.onClick.AddListener(() =>
             {

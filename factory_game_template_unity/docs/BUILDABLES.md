@@ -30,10 +30,14 @@ Tipps
 - Build-Kosten werden aus dem Build-Depot entnommen.
 - Depot-Buildable ist ein Storage mit `isBuildDepot = true`.
 - Generator liefert Power (siehe `PowerManager`).
+- PowerPole verbindet Power-Nodes im Umkreis.
+- Power-Verbindungen werden als Gizmos gezeichnet (PowerManager auswaehlen).
 
 Prefabs
 -------
 Die Buildables liegen als Prefabs in `Assets/Resources/Buildables`.
 Falls Prefabs fehlen, erstellt `TemplateBootstrap` sie automatisch zur
 Laufzeit.
+Meshes liegen in `Assets/Resources/Meshes` und werden von den Prefabs
+genutzt.
 

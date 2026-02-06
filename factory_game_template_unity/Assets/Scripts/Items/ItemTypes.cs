@@ -7,4 +7,6 @@ public static class ItemTypes
     public const string IronIngot = "IronIngot";
     public const string CopperIngot = "CopperIngot";
     public const string Concrete = "Concrete";
+    public const string IronPlate = "IronPlate";
+    public const string CopperWire = "CopperWire";
 }

@@ -6,6 +6,10 @@ public class BuildableVisualPreset : MonoBehaviour
     public bool generateOnAwake = true;
 
     private const string VisualRootName = "VisualRoot";
+    private const string BoxMeshName = "Meshes/Box";
+    private const string CylinderMeshName = "Meshes/Cylinder";
+    private static Mesh _boxMesh;
+    private static Mesh _cylinderMesh;
 
     private void Awake()
     {
@@ -38,22 +42,26 @@ public class BuildableVisualPreset : MonoBehaviour
         Transform root = new GameObject(VisualRootName).transform;
         root.SetParent(transform, false);
 
-        CreatePart(root, "Body", PrimitiveType.Cube, size, new Vector3(0f, size.y * 0.5f, 0f), color);
+        CreatePart(root, "Body", false, size, new Vector3(0f, size.y * 0.5f, 0f), color);
 
         switch (preset)
         {
             case BuildableVisualType.Miner:
-                CreatePart(root, "Drill", PrimitiveType.Cylinder, new Vector3(0.25f, 0.7f, 0.25f), new Vector3(0f, 0.2f, 0f), new Color(0.2f, 0.2f, 0.2f, 1f));
+                CreatePart(root, "Drill", true, new Vector3(0.25f, 0.7f, 0.25f), new Vector3(0f, 0.2f, 0f), new Color(0.2f, 0.2f, 0.2f, 1f));
                 break;
             case BuildableVisualType.Smelter:
-                CreatePart(root, "Chimney", PrimitiveType.Cylinder, new Vector3(0.5f, 1.2f, 0.5f), new Vector3(0.3f, 1.2f, 0.3f), new Color(0.25f, 0.25f, 0.25f, 1f));
+                CreatePart(root, "Chimney", true, new Vector3(0.5f, 1.2f, 0.5f), new Vector3(0.3f, 1.2f, 0.3f), new Color(0.25f, 0.25f, 0.25f, 1f));
                 break;
             case BuildableVisualType.Depot:
-                CreatePart(root, "Crate", PrimitiveType.Cube, new Vector3(0.8f, 0.6f, 0.8f), new Vector3(-0.35f, 0.4f, 0.2f), new Color(0.5f, 0.35f, 0.2f, 1f));
-                CreatePart(root, "Beacon", PrimitiveType.Cylinder, new Vector3(0.2f, 0.8f, 0.2f), new Vector3(0.5f, 0.6f, -0.4f), new Color(0.9f, 0.8f, 0.2f, 1f));
+                CreatePart(root, "Crate", false, new Vector3(0.8f, 0.6f, 0.8f), new Vector3(-0.35f, 0.4f, 0.2f), new Color(0.5f, 0.35f, 0.2f, 1f));
+                CreatePart(root, "Beacon", true, new Vector3(0.2f, 0.8f, 0.2f), new Vector3(0.5f, 0.6f, -0.4f), new Color(0.9f, 0.8f, 0.2f, 1f));
                 break;
             case BuildableVisualType.Generator:
-                CreatePart(root, "Exhaust", PrimitiveType.Cylinder, new Vector3(0.25f, 0.8f, 0.25f), new Vector3(-0.4f, 0.7f, 0f), new Color(0.15f, 0.15f, 0.15f, 1f));
+                CreatePart(root, "Exhaust", true, new Vector3(0.25f, 0.8f, 0.25f), new Vector3(-0.4f, 0.7f, 0f), new Color(0.15f, 0.15f, 0.15f, 1f));
+                break;
+            case BuildableVisualType.PowerPole:
+                CreatePart(root, "Pole", true, new Vector3(0.2f, 2.4f, 0.2f), new Vector3(0f, 1.2f, 0f), new Color(0.3f, 0.3f, 0.35f, 1f));
+                CreatePart(root, "Cross", false, new Vector3(1f, 0.12f, 0.2f), new Vector3(0f, 2.2f, 0f), new Color(0.4f, 0.4f, 0.45f, 1f));
                 break;
         }
 
@@ -76,6 +84,8 @@ public class BuildableVisualPreset : MonoBehaviour
                 return new Vector3(1.8f, 1.2f, 1.8f);
             case BuildableVisualType.Generator:
                 return new Vector3(1.8f, 1.2f, 1.8f);
+            case BuildableVisualType.PowerPole:
+                return new Vector3(0.6f, 2.6f, 0.6f);
             default:
                 return Vector3.one;
         }
@@ -97,30 +107,33 @@ public class BuildableVisualPreset : MonoBehaviour
                 return new Color(0.25f, 0.3f, 0.55f, 1f);
             case BuildableVisualType.Generator:
                 return new Color(0.25f, 0.25f, 0.25f, 1f);
+            case BuildableVisualType.PowerPole:
+                return new Color(0.35f, 0.35f, 0.4f, 1f);
             default:
                 return Color.white;
         }
     }
 
-    private void CreatePart(Transform parent, string name, PrimitiveType type, Vector3 scale, Vector3 localPos, Color color)
+    private void CreatePart(Transform parent, string name, bool useCylinder, Vector3 scale, Vector3 localPos, Color color)
     {
-        GameObject part = GameObject.CreatePrimitive(type);
-        part.name = name;
+        Mesh mesh = useCylinder ? GetCylinderMesh() : GetBoxMesh();
+        if (mesh == null)
+        {
+            Debug.LogWarning("Missing mesh asset for " + name);
+            return;
+        }
+
+        GameObject part = new GameObject(name);
         part.transform.SetParent(parent, false);
         part.transform.localScale = scale;
         part.transform.localPosition = localPos;
 
-        Renderer renderer = part.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material.color = color;
-        }
+        MeshFilter filter = part.AddComponent<MeshFilter>();
+        filter.sharedMesh = mesh;
 
-        Collider col = part.GetComponent<Collider>();
-        if (col != null)
-        {
-            Destroy(col);
-        }
+        MeshRenderer renderer = part.AddComponent<MeshRenderer>();
+        renderer.material = new Material(Shader.Find("Standard"));
+        renderer.material.color = color;
     }
 
     private void EnsureCollider(Vector3 size)
@@ -135,6 +148,24 @@ public class BuildableVisualPreset : MonoBehaviour
         collider.size = size;
         collider.center = new Vector3(0f, size.y * 0.5f, 0f);
     }
+
+    private static Mesh GetBoxMesh()
+    {
+        if (_boxMesh == null)
+        {
+            _boxMesh = Resources.Load<Mesh>(BoxMeshName);
+        }
+        return _boxMesh;
+    }
+
+    private static Mesh GetCylinderMesh()
+    {
+        if (_cylinderMesh == null)
+        {
+            _cylinderMesh = Resources.Load<Mesh>(CylinderMeshName);
+        }
+        return _cylinderMesh;
+    }
 }
 
 public enum BuildableVisualType
@@ -144,5 +175,6 @@ public enum BuildableVisualType
     Smelter,
     Storage,
     Depot,
-    Generator
+    Generator,
+    PowerPole
 }

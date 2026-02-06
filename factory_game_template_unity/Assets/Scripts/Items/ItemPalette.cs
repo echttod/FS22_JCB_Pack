@@ -18,6 +18,10 @@ public static class ItemPalette
                 return new Color(0.8f, 0.5f, 0.3f, 1f);
             case ItemTypes.Concrete:
                 return new Color(0.7f, 0.7f, 0.7f, 1f);
+            case ItemTypes.IronPlate:
+                return new Color(0.55f, 0.6f, 0.65f, 1f);
+            case ItemTypes.CopperWire:
+                return new Color(0.85f, 0.5f, 0.25f, 1f);
             default:
                 return new Color(0.2f, 0.9f, 1f, 1f);
         }

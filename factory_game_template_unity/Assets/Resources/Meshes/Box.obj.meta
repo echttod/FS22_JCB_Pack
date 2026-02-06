@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: aa11223344556677889900aabbccdde
+ModelImporter:
+  serializedVersion: 23200
+  internalIDToNameTable: []
+  externalObjects: {}
+  materials:
+    materialImportMode: 0
+  animations:
+    legacyGenerateAnimations: 4
+  meshes:
+    globalScale: 1
+    useFileUnits: 1
+  isReadable: 1
+  meshOptimizationFlags: 0
+  importAnimation: 0
+  importBlendShapes: 0
+  importCameras: 0
+  importLights: 0
+  importVisibility: 0
+  importBlendShapeDeformPercent: 0
+  importTangents: 0
+  importNormals: 2
+  importMaterialSearch: 1
+  importMaterials: 0
