@@ -22,6 +22,14 @@ public static class ItemPalette
                 return new Color(0.55f, 0.6f, 0.65f, 1f);
             case ItemTypes.CopperWire:
                 return new Color(0.85f, 0.5f, 0.25f, 1f);
+            case ItemTypes.IronRod:
+                return new Color(0.65f, 0.65f, 0.7f, 1f);
+            case ItemTypes.Screw:
+                return new Color(0.6f, 0.55f, 0.5f, 1f);
+            case ItemTypes.ReinforcedPlate:
+                return new Color(0.45f, 0.55f, 0.6f, 1f);
+            case ItemTypes.Circuit:
+                return new Color(0.2f, 0.8f, 0.4f, 1f);
             default:
                 return new Color(0.2f, 0.9f, 1f, 1f);
         }

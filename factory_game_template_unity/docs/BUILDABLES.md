@@ -26,12 +26,14 @@ Tipps
 - Pivot am Boden spart dir Platzierungs-Offsets.
 - Colliders nur am Root halten, damit Bounds sauber sind.
 - Miner/Conveyor/Smelter/Storage nutzen die Item-Skripte.
+- Constructor/Assembler nutzen das Recipe-System.
 - Build-Kosten werden in `TemplateBootstrap` als `BuildCost` gesetzt.
 - Build-Kosten werden aus dem Build-Depot entnommen.
 - Depot-Buildable ist ein Storage mit `isBuildDepot = true`.
 - Generator liefert Power (siehe `PowerManager`).
 - PowerPole verbindet Power-Nodes im Umkreis.
 - Power-Verbindungen werden als Gizmos gezeichnet (PowerManager auswaehlen).
+- PowerWireSystem zeichnet sichtbare Wires im Spiel.
 
 Prefabs
 -------

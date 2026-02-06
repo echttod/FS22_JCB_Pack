@@ -26,5 +26,9 @@ public class PowerProducer : MonoBehaviour
         }
 
         node.producer = this;
+        if (node.linkRadius <= 0f)
+        {
+            node.linkRadius = 5f;
+        }
     }
 }

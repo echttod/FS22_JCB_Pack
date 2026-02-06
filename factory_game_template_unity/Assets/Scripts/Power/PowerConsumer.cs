@@ -32,5 +32,9 @@ public class PowerConsumer : MonoBehaviour
         }
 
         node.consumer = this;
+        if (node.linkRadius <= 0f)
+        {
+            node.linkRadius = 4f;
+        }
     }
 }

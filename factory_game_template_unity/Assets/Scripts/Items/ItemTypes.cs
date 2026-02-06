@@ -9,4 +9,8 @@ public static class ItemTypes
     public const string Concrete = "Concrete";
     public const string IronPlate = "IronPlate";
     public const string CopperWire = "CopperWire";
+    public const string IronRod = "IronRod";
+    public const string Screw = "Screw";
+    public const string ReinforcedPlate = "ReinforcedPlate";
+    public const string Circuit = "Circuit";
 }

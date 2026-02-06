@@ -5,8 +5,8 @@ Gameplay Loop (Template)
    - Resource Nodes finden und markieren.
 
 2) Build
-   - Miner/Conveyor/Smelter/Storage platzieren.
-   - Generator fuer Power setzen.
+   - Miner/Conveyor/Smelter/Constructor/Assembler/Storage platzieren.
+   - Generator + PowerPole fuer Power setzen.
    - Layout optimieren.
 
 3) Automate

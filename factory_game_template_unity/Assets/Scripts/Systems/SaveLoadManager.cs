@@ -70,14 +70,14 @@ public class SaveLoadManager : MonoBehaviour
                 entry.storage = storage.GetSnapshot();
             }
 
-            Smelter smelter = buildable.GetComponent<Smelter>();
-            if (smelter != null)
+            IRecipeMachine recipeMachine = GetRecipeMachine(buildable);
+            if (recipeMachine != null)
             {
-                entry.smelterInput = smelter.GetInputSnapshot();
-                entry.smelterOutput = smelter.GetOutputSnapshot();
-                entry.smelterActive = smelter.GetActiveRecipeId();
-                entry.smelterProcessing = smelter.GetProcessingRecipeId();
-                entry.smelterTimer = smelter.GetCurrentTimer();
+                entry.recipeInput = recipeMachine.GetInputSnapshot();
+                entry.recipeOutput = recipeMachine.GetOutputSnapshot();
+                entry.recipeActive = recipeMachine.GetActiveRecipeId();
+                entry.recipeProcessing = recipeMachine.GetProcessingRecipeId();
+                entry.recipeTimer = recipeMachine.GetCurrentTimer();
             }
 
             Miner miner = buildable.GetComponent<Miner>();
@@ -249,10 +249,10 @@ public class SaveLoadManager : MonoBehaviour
                 storage.Restore(entry.storage);
             }
 
-            Smelter smelter = placed.GetComponent<Smelter>();
-            if (smelter != null)
+            IRecipeMachine recipeMachine = GetRecipeMachine(placed);
+            if (recipeMachine != null)
             {
-                smelter.RestoreState(entry.smelterInput, entry.smelterOutput, entry.smelterActive, entry.smelterProcessing, entry.smelterTimer);
+                recipeMachine.RestoreState(entry.recipeInput, entry.recipeOutput, entry.recipeActive, entry.recipeProcessing, entry.recipeTimer);
             }
 
             Miner miner = placed.GetComponent<Miner>();
@@ -360,6 +360,25 @@ public class SaveLoadManager : MonoBehaviour
         }
     }
 
+    private static IRecipeMachine GetRecipeMachine(Component component)
+    {
+        if (component == null)
+        {
+            return null;
+        }
+
+        MonoBehaviour[] behaviours = component.GetComponents<MonoBehaviour>();
+        foreach (MonoBehaviour behaviour in behaviours)
+        {
+            if (behaviour is IRecipeMachine machine)
+            {
+                return machine;
+            }
+        }
+
+        return null;
+    }
+
     [Serializable]
     private class SaveData
     {
@@ -376,11 +395,11 @@ public class SaveLoadManager : MonoBehaviour
         public Vector3 position;
         public Vector3 rotation;
         public ItemStack[] storage;
-        public ItemStack[] smelterInput;
-        public ItemStack[] smelterOutput;
-        public string smelterActive;
-        public string smelterProcessing;
-        public float smelterTimer;
+        public ItemStack[] recipeInput;
+        public ItemStack[] recipeOutput;
+        public string recipeActive;
+        public string recipeProcessing;
+        public float recipeTimer;
         public ItemStack[] minerBuffer;
         public ConveyorItemState[] conveyorItems;
     }

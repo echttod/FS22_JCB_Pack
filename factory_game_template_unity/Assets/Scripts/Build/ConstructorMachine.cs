@@ -1,11 +1,11 @@
 using UnityEngine;
 
-public class Smelter : MonoBehaviour, IItemInput, IPlacementAware, IInteractable, IRecipeMachine
+public class ConstructorMachine : MonoBehaviour, IItemInput, IPlacementAware, IInteractable, IRecipeMachine
 {
     [Header("Processing")]
-    public int inputCapacity = 10;
-    public int outputCapacity = 10;
-    public string machineId = "Smelter";
+    public int inputCapacity = 20;
+    public int outputCapacity = 20;
+    public string machineId = "Constructor";
     public string activeRecipeId;
     public RecipeBook recipeBook;
     public ResearchManager researchManager;
@@ -59,7 +59,7 @@ public class Smelter : MonoBehaviour, IItemInput, IPlacementAware, IInteractable
         EnsureInventories();
         CycleRecipe();
         string recipeName = string.IsNullOrEmpty(activeRecipeId) ? "Auto" : activeRecipeId;
-        Debug.Log("Smelter [" + recipeName + "] Input: " + _input.GetSummary() + " | Output: " + _output.GetSummary());
+        Debug.Log("Constructor [" + recipeName + "] Input: " + _input.GetSummary() + " | Output: " + _output.GetSummary());
     }
 
     public ItemStack[] GetInputSnapshot()

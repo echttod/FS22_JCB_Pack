@@ -11,11 +11,11 @@ Highlights
 - Sichtbare Haende (Viewmodel), optionaler Platzhalter im Code.
 - Build-Mode mit Ghost-Preview, Grid-Snap und Rotation.
 - Build-Katalog UI im Build-Mode.
-- Beispiel-Buildables: Miner, Conveyor, Smelter, Storage, Depot, Generator, PowerPole.
+- Beispiel-Buildables: Miner, Conveyor, Smelter, Constructor, Assembler, Storage, Depot, Generator, PowerPole.
 - Build-Kosten aus Depots (naechstes Depot wird bevorzugt).
 - Research/Tech-Tier System (R).
 - Recipe System fuer Smelter.
-- Power Grid (Generatoren vs. Verbraucher).
+- Power Grid (Generatoren vs. Verbraucher) + sichtbare Wires.
 - Save/Load (F5/F9, inkl. Storage/Smelter/Miner/Conveyor).
 - Prefabs in `Assets/Resources/Buildables`.
 - Meshes in `Assets/Resources/Meshes`.

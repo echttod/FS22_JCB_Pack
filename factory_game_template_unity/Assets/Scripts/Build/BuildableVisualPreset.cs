@@ -6,10 +6,10 @@ public class BuildableVisualPreset : MonoBehaviour
     public bool generateOnAwake = true;
 
     private const string VisualRootName = "VisualRoot";
-    private const string BoxMeshName = "Meshes/Box";
-    private const string CylinderMeshName = "Meshes/Cylinder";
-    private static Mesh _boxMesh;
-    private static Mesh _cylinderMesh;
+    private const string BlockMeshName = "Meshes/BevelBlock";
+    private const string HexMeshName = "Meshes/HexPrism";
+    private static Mesh _blockMesh;
+    private static Mesh _hexMesh;
 
     private void Awake()
     {
@@ -63,6 +63,13 @@ public class BuildableVisualPreset : MonoBehaviour
                 CreatePart(root, "Pole", true, new Vector3(0.2f, 2.4f, 0.2f), new Vector3(0f, 1.2f, 0f), new Color(0.3f, 0.3f, 0.35f, 1f));
                 CreatePart(root, "Cross", false, new Vector3(1f, 0.12f, 0.2f), new Vector3(0f, 2.2f, 0f), new Color(0.4f, 0.4f, 0.45f, 1f));
                 break;
+            case BuildableVisualType.Constructor:
+                CreatePart(root, "Arm", true, new Vector3(0.3f, 0.6f, 0.3f), new Vector3(0.45f, 0.6f, -0.25f), new Color(0.2f, 0.2f, 0.25f, 1f));
+                break;
+            case BuildableVisualType.Assembler:
+                CreatePart(root, "Tower", true, new Vector3(0.3f, 1.1f, 0.3f), new Vector3(-0.4f, 0.9f, 0.2f), new Color(0.2f, 0.2f, 0.25f, 1f));
+                CreatePart(root, "Arm", false, new Vector3(0.8f, 0.18f, 0.3f), new Vector3(0.2f, 1.2f, 0f), new Color(0.35f, 0.35f, 0.4f, 1f));
+                break;
         }
 
         EnsureCollider(size);
@@ -86,6 +93,10 @@ public class BuildableVisualPreset : MonoBehaviour
                 return new Vector3(1.8f, 1.2f, 1.8f);
             case BuildableVisualType.PowerPole:
                 return new Vector3(0.6f, 2.6f, 0.6f);
+            case BuildableVisualType.Constructor:
+                return new Vector3(1.6f, 1.2f, 1.6f);
+            case BuildableVisualType.Assembler:
+                return new Vector3(2f, 1.6f, 2f);
             default:
                 return Vector3.one;
         }
@@ -109,6 +120,10 @@ public class BuildableVisualPreset : MonoBehaviour
                 return new Color(0.25f, 0.25f, 0.25f, 1f);
             case BuildableVisualType.PowerPole:
                 return new Color(0.35f, 0.35f, 0.4f, 1f);
+            case BuildableVisualType.Constructor:
+                return new Color(0.35f, 0.55f, 0.7f, 1f);
+            case BuildableVisualType.Assembler:
+                return new Color(0.55f, 0.35f, 0.6f, 1f);
             default:
                 return Color.white;
         }
@@ -116,7 +131,7 @@ public class BuildableVisualPreset : MonoBehaviour
 
     private void CreatePart(Transform parent, string name, bool useCylinder, Vector3 scale, Vector3 localPos, Color color)
     {
-        Mesh mesh = useCylinder ? GetCylinderMesh() : GetBoxMesh();
+        Mesh mesh = useCylinder ? GetHexMesh() : GetBlockMesh();
         if (mesh == null)
         {
             Debug.LogWarning("Missing mesh asset for " + name);
@@ -149,22 +164,22 @@ public class BuildableVisualPreset : MonoBehaviour
         collider.center = new Vector3(0f, size.y * 0.5f, 0f);
     }
 
-    private static Mesh GetBoxMesh()
+    private static Mesh GetBlockMesh()
     {
-        if (_boxMesh == null)
+        if (_blockMesh == null)
         {
-            _boxMesh = Resources.Load<Mesh>(BoxMeshName);
+            _blockMesh = Resources.Load<Mesh>(BlockMeshName);
         }
-        return _boxMesh;
+        return _blockMesh;
     }
 
-    private static Mesh GetCylinderMesh()
+    private static Mesh GetHexMesh()
     {
-        if (_cylinderMesh == null)
+        if (_hexMesh == null)
         {
-            _cylinderMesh = Resources.Load<Mesh>(CylinderMeshName);
+            _hexMesh = Resources.Load<Mesh>(HexMeshName);
         }
-        return _cylinderMesh;
+        return _hexMesh;
     }
 }
 
@@ -176,5 +191,7 @@ public enum BuildableVisualType
     Storage,
     Depot,
     Generator,
-    PowerPole
+    PowerPole,
+    Constructor,
+    Assembler
 }

@@ -89,11 +89,13 @@ public class TemplateBootstrap : MonoBehaviour
         ResearchManager researchManager = systems.AddComponent<ResearchManager>();
         RecipeBook recipeBook = systems.AddComponent<RecipeBook>();
         PowerManager powerManager = systems.AddComponent<PowerManager>();
+        PowerWireSystem wireSystem = systems.AddComponent<PowerWireSystem>();
         BuildSystem buildSystem = systems.AddComponent<BuildSystem>();
         buildSystem.catalog = catalog;
         buildSystem.costProvider = costProvider;
         buildSystem.researchManager = researchManager;
         buildSystem.playerCamera = camera;
+        wireSystem.powerManager = powerManager;
 
         HudOverlay hud = cameraObj.AddComponent<HudOverlay>();
         hud.buildSystem = buildSystem;
@@ -142,6 +144,20 @@ public class TemplateBootstrap : MonoBehaviour
             consumer.demand = 1.4f;
         });
 
+        GameObject constructor = GetOrCreatePrefab("Constructor", BuildableVisualType.Constructor, go =>
+        {
+            go.AddComponent<ConstructorMachine>();
+            PowerConsumer consumer = go.AddComponent<PowerConsumer>();
+            consumer.demand = 1.2f;
+        });
+
+        GameObject assembler = GetOrCreatePrefab("Assembler", BuildableVisualType.Assembler, go =>
+        {
+            go.AddComponent<AssemblerMachine>();
+            PowerConsumer consumer = go.AddComponent<PowerConsumer>();
+            consumer.demand = 2f;
+        });
+
         GameObject storage = GetOrCreatePrefab("Storage", BuildableVisualType.Storage, go =>
         {
             go.AddComponent<StorageContainer>();
@@ -181,6 +197,16 @@ public class TemplateBootstrap : MonoBehaviour
             new BuildCost(ItemTypes.IronOre, 8),
             new BuildCost(ItemTypes.CopperOre, 4)
         }, 1);
+        RegisterPrefab(catalog, library.transform, constructor, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronIngot, 4),
+            new BuildCost(ItemTypes.Concrete, 2)
+        }, 2);
+        RegisterPrefab(catalog, library.transform, assembler, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronPlate, 4),
+            new BuildCost(ItemTypes.CopperWire, 6)
+        }, 3);
         RegisterPrefab(catalog, library.transform, storage, new List<BuildCost>
         {
             new BuildCost(ItemTypes.IronOre, 4),
@@ -341,7 +367,7 @@ public class TemplateBootstrap : MonoBehaviour
         {
             id = "IronPlate",
             displayName = "Iron Plate",
-            machineId = "Smelter",
+            machineId = "Constructor",
             requiredTier = 2,
             processTime = 2.5f,
             inputs = new List<BuildCost> { new BuildCost(ItemTypes.IronIngot, 2) },
@@ -352,11 +378,63 @@ public class TemplateBootstrap : MonoBehaviour
         {
             id = "CopperWire",
             displayName = "Copper Wire",
-            machineId = "Smelter",
+            machineId = "Constructor",
             requiredTier = 2,
             processTime = 1.8f,
             inputs = new List<BuildCost> { new BuildCost(ItemTypes.CopperIngot, 1) },
             outputs = new List<ItemStack> { new ItemStack(ItemTypes.CopperWire, 2) }
+        });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "IronRod",
+            displayName = "Iron Rod",
+            machineId = "Constructor",
+            requiredTier = 2,
+            processTime = 1.6f,
+            inputs = new List<BuildCost> { new BuildCost(ItemTypes.IronIngot, 1) },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.IronRod, 1) }
+        });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "Screw",
+            displayName = "Screw",
+            machineId = "Constructor",
+            requiredTier = 2,
+            processTime = 1.4f,
+            inputs = new List<BuildCost> { new BuildCost(ItemTypes.IronRod, 1) },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.Screw, 4) }
+        });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "ReinforcedPlate",
+            displayName = "Reinforced Plate",
+            machineId = "Assembler",
+            requiredTier = 3,
+            processTime = 3f,
+            inputs = new List<BuildCost>
+            {
+                new BuildCost(ItemTypes.IronPlate, 2),
+                new BuildCost(ItemTypes.Screw, 4)
+            },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.ReinforcedPlate, 1) }
+        });
+
+        recipeBook.recipes.Add(new RecipeDefinition
+        {
+            id = "Circuit",
+            displayName = "Circuit",
+            machineId = "Assembler",
+            requiredTier = 3,
+            processTime = 3f,
+            inputs = new List<BuildCost>
+            {
+                new BuildCost(ItemTypes.CopperWire, 4),
+                new BuildCost(ItemTypes.IronPlate, 1)
+            },
+            outputs = new List<ItemStack> { new ItemStack(ItemTypes.Circuit, 1) }
         });
     }
 
@@ -385,7 +463,7 @@ public class TemplateBootstrap : MonoBehaviour
             {
                 id = "tier1_power",
                 displayName = "Tier 1: Power Grid",
-                description = "Unlocks Power Poles and stabilizes power.",
+                description = "Unlocks Power Poles.",
                 unlockTier = 1,
                 costs = new List<BuildCost>
                 {
@@ -396,9 +474,9 @@ public class TemplateBootstrap : MonoBehaviour
             },
             new TechNode
             {
-                id = "tier2_efficiency",
-                displayName = "Tier 2: Efficiency",
-                description = "Future tech tier placeholder.",
+                id = "tier2_construction",
+                displayName = "Tier 2: Construction",
+                description = "Unlocks Constructor and advanced parts.",
                 unlockTier = 2,
                 costs = new List<BuildCost>
                 {
@@ -409,16 +487,16 @@ public class TemplateBootstrap : MonoBehaviour
             },
             new TechNode
             {
-                id = "tier2_logistics",
-                displayName = "Tier 2: Logistics",
-                description = "Unlocks advanced recipes.",
-                unlockTier = 2,
+                id = "tier3_assembly",
+                displayName = "Tier 3: Assembly",
+                description = "Unlocks Assembler.",
+                unlockTier = 3,
                 costs = new List<BuildCost>
                 {
-                    new BuildCost(ItemTypes.IronPlate, 4),
-                    new BuildCost(ItemTypes.CopperWire, 6)
+                    new BuildCost(ItemTypes.IronPlate, 6),
+                    new BuildCost(ItemTypes.CopperWire, 8)
                 },
-                prerequisites = new List<string> { "tier2_efficiency" }
+                prerequisites = new List<string> { "tier2_construction" }
             }
         };
 
