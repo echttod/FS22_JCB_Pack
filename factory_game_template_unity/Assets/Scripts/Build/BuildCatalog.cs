@@ -7,6 +7,7 @@ public class BuildableEntry
 {
     public string id;
     public GameObject prefab;
+    public List<BuildCost> costs = new List<BuildCost>();
 }
 
 public class BuildCatalog : MonoBehaviour
@@ -39,7 +40,25 @@ public class BuildCatalog : MonoBehaviour
         return null;
     }
 
+    public List<BuildCost> GetCosts(string id)
+    {
+        foreach (BuildableEntry entry in buildables)
+        {
+            if (entry != null && entry.id == id)
+            {
+                return entry.costs ?? new List<BuildCost>();
+            }
+        }
+
+        return new List<BuildCost>();
+    }
+
     public void Register(string id, GameObject prefab)
+    {
+        Register(id, prefab, null);
+    }
+
+    public void Register(string id, GameObject prefab, List<BuildCost> costs)
     {
         if (string.IsNullOrEmpty(id) || prefab == null)
         {
@@ -50,13 +69,15 @@ public class BuildCatalog : MonoBehaviour
         if (existing != null)
         {
             existing.prefab = prefab;
+            existing.costs = costs ?? new List<BuildCost>();
             return;
         }
 
         BuildableEntry entry = new BuildableEntry
         {
             id = id,
-            prefab = prefab
+            prefab = prefab,
+            costs = costs ?? new List<BuildCost>()
         };
         buildables.Add(entry);
     }

@@ -98,6 +98,22 @@ public class ItemInventory
         return _count > 0;
     }
 
+    public void Clear()
+    {
+        _items.Clear();
+        _count = 0;
+    }
+
+    public List<ItemStack> GetStacks()
+    {
+        List<ItemStack> stacks = new List<ItemStack>();
+        foreach (KeyValuePair<string, int> pair in _items)
+        {
+            stacks.Add(new ItemStack(pair.Key, pair.Value));
+        }
+        return stacks;
+    }
+
     public string GetSummary()
     {
         if (_items.Count == 0)

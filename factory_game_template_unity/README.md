@@ -10,7 +10,10 @@ Highlights
 - First-Person Controller (CharacterController).
 - Sichtbare Haende (Viewmodel), optionaler Platzhalter im Code.
 - Build-Mode mit Ghost-Preview, Grid-Snap und Rotation.
+- Build-Katalog UI im Build-Mode.
 - Beispiel-Buildables: Miner, Conveyor, Smelter, Storage (runtime erzeugt).
+- Build-Kosten + Wallet (Startressourcen werden gesetzt).
+- Save/Load (F5/F9).
 - Resource Nodes mit Interaktion.
 - HUD Overlay (OnGUI) fuer Status und Controls.
 
@@ -37,6 +40,8 @@ Controls (Default)
 - Q/E: Buildable wechseln
 - Z/C: Buildable drehen
 - Linke Maustaste: Platzieren
+- F5: Speichern
+- F9: Laden
 - Esc: Maus freigeben
 
 Projektstruktur

@@ -24,4 +24,23 @@ public class StorageContainer : MonoBehaviour, IItemInput, IInteractable
     {
         Debug.Log("Storage: " + _inventory.GetSummary());
     }
+
+    public ItemStack[] GetSnapshot()
+    {
+        return _inventory.GetStacks().ToArray();
+    }
+
+    public void Restore(ItemStack[] stacks)
+    {
+        _inventory.Clear();
+        if (stacks == null)
+        {
+            return;
+        }
+
+        foreach (ItemStack stack in stacks)
+        {
+            _inventory.Add(stack.id, stack.amount);
+        }
+    }
 }

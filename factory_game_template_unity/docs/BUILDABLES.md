@@ -26,4 +26,5 @@ Tipps
 - Pivot am Boden spart dir Platzierungs-Offsets.
 - Colliders nur am Root halten, damit Bounds sauber sind.
 - Miner/Conveyor/Smelter/Storage nutzen die Item-Skripte.
+- Build-Kosten werden in `TemplateBootstrap` als `BuildCost` gesetzt.
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TemplateBootstrap : MonoBehaviour
@@ -9,6 +10,8 @@ public class TemplateBootstrap : MonoBehaviour
 
     [Header("Player")]
     public Vector3 playerStart = new Vector3(0f, 2f, -6f);
+
+    private Transform _libraryRoot;
 
     private void Start()
     {
@@ -80,20 +83,31 @@ public class TemplateBootstrap : MonoBehaviour
 
         GameObject systems = new GameObject("GameSystems");
         BuildCatalog catalog = systems.AddComponent<BuildCatalog>();
+        BuildWallet wallet = systems.AddComponent<BuildWallet>();
         BuildSystem buildSystem = systems.AddComponent<BuildSystem>();
         buildSystem.catalog = catalog;
+        buildSystem.wallet = wallet;
         buildSystem.playerCamera = camera;
 
         HudOverlay hud = cameraObj.AddComponent<HudOverlay>();
         hud.buildSystem = buildSystem;
+        hud.wallet = wallet;
 
+        SeedWallet(wallet);
         CreateDefaultBuildables(catalog);
+
+        SaveLoadManager saveLoad = systems.AddComponent<SaveLoadManager>();
+        saveLoad.catalog = catalog;
+        saveLoad.wallet = wallet;
+        saveLoad.buildSystem = buildSystem;
+        saveLoad.libraryRoot = _libraryRoot;
     }
 
     private void CreateDefaultBuildables(BuildCatalog catalog)
     {
         GameObject library = new GameObject("BuildableLibrary");
         library.transform.SetParent(transform, false);
+        _libraryRoot = library.transform;
 
         GameObject conveyor = CreateBuildablePrefab("Conveyor", new Vector3(0.6f, 0.2f, 2f), new Color(0.1f, 0.6f, 0.9f, 1f));
         conveyor.AddComponent<ConveyorBelt>();
@@ -115,17 +129,32 @@ public class TemplateBootstrap : MonoBehaviour
 
         AddChimney(smelter, new Vector3(0.5f, 1.2f, 0.5f));
 
-        RegisterPrefab(catalog, library.transform, conveyor);
-        RegisterPrefab(catalog, library.transform, miner);
-        RegisterPrefab(catalog, library.transform, smelter);
-        RegisterPrefab(catalog, library.transform, storage);
+        RegisterPrefab(catalog, library.transform, conveyor, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronOre, 1)
+        });
+        RegisterPrefab(catalog, library.transform, miner, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronOre, 5),
+            new BuildCost(ItemTypes.Limestone, 2)
+        });
+        RegisterPrefab(catalog, library.transform, smelter, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronOre, 8),
+            new BuildCost(ItemTypes.CopperOre, 4)
+        });
+        RegisterPrefab(catalog, library.transform, storage, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronOre, 4),
+            new BuildCost(ItemTypes.Limestone, 4)
+        });
     }
 
-    private static void RegisterPrefab(BuildCatalog catalog, Transform parent, GameObject prefab)
+    private static void RegisterPrefab(BuildCatalog catalog, Transform parent, GameObject prefab, List<BuildCost> costs)
     {
         prefab.transform.SetParent(parent, false);
         prefab.SetActive(false);
-        catalog.Register(prefab.name, prefab);
+        catalog.Register(prefab.name, prefab, costs);
     }
 
     private static GameObject CreateBuildablePrefab(string name, Vector3 size, Color color)
@@ -133,6 +162,8 @@ public class TemplateBootstrap : MonoBehaviour
         GameObject root = new GameObject(name);
         Buildable buildable = root.AddComponent<Buildable>();
         buildable.footprint = size;
+        BuildableId id = root.AddComponent<BuildableId>();
+        id.id = name;
 
         GameObject mesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
         mesh.name = "Mesh";
@@ -229,5 +260,17 @@ public class TemplateBootstrap : MonoBehaviour
         ResourceNode resourceNode = node.AddComponent<ResourceNode>();
         resourceNode.resourceId = resourceId;
         resourceNode.amount = 1000;
+    }
+
+    private static void SeedWallet(BuildWallet wallet)
+    {
+        if (wallet == null)
+        {
+            return;
+        }
+
+        wallet.Add(ItemTypes.IronOre, 40);
+        wallet.Add(ItemTypes.CopperOre, 20);
+        wallet.Add(ItemTypes.Limestone, 20);
     }
 }

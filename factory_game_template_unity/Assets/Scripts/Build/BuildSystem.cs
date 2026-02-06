@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BuildSystem : MonoBehaviour
 {
     public BuildCatalog catalog;
+    public BuildWallet wallet;
     public Camera playerCamera;
     public LayerMask placementMask = ~0;
     public LayerMask blockMask = ~0;
@@ -11,6 +13,7 @@ public class BuildSystem : MonoBehaviour
     public float rotationStep = 90f;
     public float maxGroundSlope = 12f;
     public float overlapPadding = 0.02f;
+    public bool requireCosts = true;
 
     public KeyCode toggleKey = KeyCode.B;
     public KeyCode nextKey = KeyCode.E;
@@ -30,6 +33,11 @@ public class BuildSystem : MonoBehaviour
 
     public bool IsBuildMode => _buildMode;
     public string SelectedId => _ids.Length > 0 ? _ids[_selectedIndex] : string.Empty;
+
+    public string[] GetIds()
+    {
+        return _ids;
+    }
 
     private void Start()
     {
@@ -136,7 +144,7 @@ public class BuildSystem : MonoBehaviour
             Vector3 snapped = SnapToGrid(hit.point);
             snapped.y += _ghostYOffset;
             _ghost.transform.position = snapped;
-            _hasPlacementHit = IsPlacementValid(hit.normal);
+            _hasPlacementHit = IsPlacementValid(hit.normal) && HasCostForSelected();
             if (_ghostScript != null)
             {
                 _ghostScript.SetValid(_hasPlacementHit);
@@ -159,11 +167,26 @@ public class BuildSystem : MonoBehaviour
             return;
         }
 
+        if (!HasCostForSelected())
+        {
+            return;
+        }
+
+        if (requireCosts && wallet != null)
+        {
+            List<BuildCost> costs = GetSelectedCosts();
+            if (!wallet.Spend(costs))
+            {
+                return;
+            }
+        }
+
         Vector3 pos = _ghost.transform.position;
         Quaternion rot = _ghost.transform.rotation;
         GameObject placed = Instantiate(_currentPrefab, pos, rot);
         placed.name = _currentPrefab.name;
         placed.SetActive(true);
+        EnsureBuildableId(placed);
         NotifyPlaced(placed);
     }
 
@@ -196,6 +219,8 @@ public class BuildSystem : MonoBehaviour
             _ghostScript = _ghost.AddComponent<BuildGhost>();
         }
 
+        DisableRuntimeBehaviours(_ghost);
+
         foreach (Collider col in _ghost.GetComponentsInChildren<Collider>())
         {
             col.enabled = false;
@@ -203,6 +228,49 @@ public class BuildSystem : MonoBehaviour
 
         _ghostYOffset = ComputeYOffset(_ghost);
         _ghost.SetActive(_buildMode);
+    }
+
+    public void SelectById(string id)
+    {
+        if (_ids.Length == 0 || string.IsNullOrEmpty(id))
+        {
+            return;
+        }
+
+        for (int i = 0; i < _ids.Length; i++)
+        {
+            if (_ids[i] == id)
+            {
+                _selectedIndex = i;
+                RebuildGhost();
+                return;
+            }
+        }
+    }
+
+    public List<BuildCost> GetSelectedCosts()
+    {
+        if (catalog == null)
+        {
+            return new List<BuildCost>();
+        }
+
+        return catalog.GetCosts(SelectedId);
+    }
+
+    private bool HasCostForSelected()
+    {
+        if (!requireCosts)
+        {
+            return true;
+        }
+
+        if (wallet == null)
+        {
+            return true;
+        }
+
+        return wallet.CanAfford(GetSelectedCosts());
     }
 
     private float ComputeYOffset(GameObject target)
@@ -324,6 +392,44 @@ public class BuildSystem : MonoBehaviour
             {
                 aware.OnPlaced();
             }
+        }
+    }
+
+    private static void DisableRuntimeBehaviours(GameObject target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        MonoBehaviour[] behaviours = target.GetComponentsInChildren<MonoBehaviour>();
+        foreach (MonoBehaviour behaviour in behaviours)
+        {
+            if (behaviour is BuildGhost)
+            {
+                continue;
+            }
+
+            behaviour.enabled = false;
+        }
+    }
+
+    private void EnsureBuildableId(GameObject placed)
+    {
+        if (placed == null)
+        {
+            return;
+        }
+
+        BuildableId id = placed.GetComponent<BuildableId>();
+        if (id == null)
+        {
+            id = placed.AddComponent<BuildableId>();
+        }
+
+        if (string.IsNullOrEmpty(id.id))
+        {
+            id.id = SelectedId;
         }
     }
 }
