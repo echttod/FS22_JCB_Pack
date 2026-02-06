@@ -11,8 +11,8 @@ Highlights
 - Sichtbare Haende (Viewmodel), optionaler Platzhalter im Code.
 - Build-Mode mit Ghost-Preview, Grid-Snap und Rotation.
 - Build-Katalog UI im Build-Mode.
-- Beispiel-Buildables: Miner, Conveyor, Smelter, Storage (runtime erzeugt).
-- Build-Kosten aus dem Build-Depot (Startressourcen werden gesetzt).
+- Beispiel-Buildables: Miner, Conveyor, Smelter, Storage, Depot (runtime erzeugt).
+- Build-Kosten aus dem Build-Depot/Depots (Startressourcen werden gesetzt).
 - Save/Load (F5/F9, inkl. Storage/Smelter/Miner-Buffer).
 - Resource Nodes mit Interaktion.
 - HUD Overlay (UGUI) fuer Status und Controls.

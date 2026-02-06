@@ -28,4 +28,5 @@ Tipps
 - Miner/Conveyor/Smelter/Storage nutzen die Item-Skripte.
 - Build-Kosten werden in `TemplateBootstrap` als `BuildCost` gesetzt.
 - Build-Kosten werden aus dem Build-Depot entnommen.
+- Depot-Buildable ist ein Storage mit `isBuildDepot = true`.
 

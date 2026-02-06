@@ -55,6 +55,11 @@ public class BuildCostProvider : MonoBehaviour
 
     public bool CanAfford(List<BuildCost> costs)
     {
+        return CanAfford(costs, Vector3.zero);
+    }
+
+    public bool CanAfford(List<BuildCost> costs, Vector3 referencePosition)
+    {
         if (costs == null || costs.Count == 0)
         {
             return true;
@@ -63,13 +68,7 @@ public class BuildCostProvider : MonoBehaviour
         EnsureStorages();
         foreach (BuildCost cost in costs)
         {
-            int available = 0;
-            foreach (StorageContainer storage in _storages)
-            {
-                available += storage.GetAmount(cost.id);
-            }
-
-            if (available < cost.amount)
+            if (GetTotalAmount(cost.id) < cost.amount)
             {
                 return false;
             }
@@ -80,21 +79,27 @@ public class BuildCostProvider : MonoBehaviour
 
     public bool Spend(List<BuildCost> costs)
     {
+        return Spend(costs, Vector3.zero);
+    }
+
+    public bool Spend(List<BuildCost> costs, Vector3 referencePosition)
+    {
         if (costs == null || costs.Count == 0)
         {
             return true;
         }
 
         EnsureStorages();
-        if (!CanAfford(costs))
+        if (!CanAfford(costs, referencePosition))
         {
             return false;
         }
 
+        List<StorageContainer> ordered = GetStoragesOrdered(referencePosition);
         foreach (BuildCost cost in costs)
         {
             int remaining = cost.amount;
-            foreach (StorageContainer storage in _storages)
+            foreach (StorageContainer storage in ordered)
             {
                 if (remaining <= 0)
                 {
@@ -141,6 +146,37 @@ public class BuildCostProvider : MonoBehaviour
         }
 
         return string.Join(", ", parts);
+    }
+
+    private int GetTotalAmount(string id)
+    {
+        int total = 0;
+        foreach (StorageContainer storage in _storages)
+        {
+            total += storage.GetAmount(id);
+        }
+        return total;
+    }
+
+    private List<StorageContainer> GetStoragesOrdered(Vector3 referencePosition)
+    {
+        List<StorageContainer> ordered = new List<StorageContainer>(_storages.Count);
+        foreach (StorageContainer storage in _storages)
+        {
+            if (storage != null)
+            {
+                ordered.Add(storage);
+            }
+        }
+
+        ordered.Sort((a, b) =>
+        {
+            float da = (a.transform.position - referencePosition).sqrMagnitude;
+            float db = (b.transform.position - referencePosition).sqrMagnitude;
+            return da.CompareTo(db);
+        });
+
+        return ordered;
     }
 
     private void EnsureStorages()

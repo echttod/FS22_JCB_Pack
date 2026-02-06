@@ -83,6 +83,12 @@ public class SaveLoadManager : MonoBehaviour
                 entry.minerBuffer = miner.GetBufferSnapshot();
             }
 
+            ConveyorBelt belt = buildable.GetComponent<ConveyorBelt>();
+            if (belt != null)
+            {
+                entry.conveyorItems = belt.GetItemStates();
+            }
+
             data.buildables.Add(entry);
         }
 
@@ -105,6 +111,11 @@ public class SaveLoadManager : MonoBehaviour
         foreach (StorageContainer storage in storages)
         {
             if (storage == null || !storage.isBuildDepot)
+            {
+                continue;
+            }
+
+            if (storage.GetComponent<BuildableId>() != null)
             {
                 continue;
             }
@@ -238,6 +249,12 @@ public class SaveLoadManager : MonoBehaviour
                 miner.RestoreBuffer(entry.minerBuffer);
             }
 
+            ConveyorBelt belt = placed.GetComponent<ConveyorBelt>();
+            if (belt != null && entry.conveyorItems != null)
+            {
+                belt.RestoreItems(entry.conveyorItems);
+            }
+
             NotifyPlaced(placed);
         }
     }
@@ -284,7 +301,17 @@ public class SaveLoadManager : MonoBehaviour
         Dictionary<string, StorageContainer> lookup = new Dictionary<string, StorageContainer>();
         foreach (StorageContainer storage in storages)
         {
-            if (storage != null && storage.isBuildDepot && !lookup.ContainsKey(storage.name))
+            if (storage == null || !storage.isBuildDepot)
+            {
+                continue;
+            }
+
+            if (storage.GetComponent<BuildableId>() != null)
+            {
+                continue;
+            }
+
+            if (!lookup.ContainsKey(storage.name))
             {
                 lookup.Add(storage.name, storage);
             }
@@ -341,6 +368,7 @@ public class SaveLoadManager : MonoBehaviour
         public string smelterCurrent;
         public float smelterTimer;
         public ItemStack[] minerBuffer;
+        public ConveyorItemState[] conveyorItems;
     }
 
     [Serializable]

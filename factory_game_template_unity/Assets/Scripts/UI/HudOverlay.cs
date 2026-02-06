@@ -64,7 +64,7 @@ public class HudOverlay : MonoBehaviour
         string affordable = "Yes";
         if (buildSystem != null && buildSystem.requireCosts && costProvider != null)
         {
-            affordable = costProvider.CanAfford(buildSystem.GetSelectedCosts()) ? "Yes" : "No";
+            affordable = costProvider.CanAfford(buildSystem.GetSelectedCosts(), buildSystem.PlacementPosition) ? "Yes" : "No";
         }
 
         string resources = costProvider != null ? costProvider.GetSummary() : "No depot";

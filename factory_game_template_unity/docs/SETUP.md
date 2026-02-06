@@ -24,7 +24,7 @@ Das Script erstellt automatisch:
 - HUD Overlay (UGUI)
 - Ground Plane + Directional Light
 - Beispiel Resource Nodes
-- Buildables: Miner, Conveyor, Smelter, Storage
+- Buildables: Miner, Conveyor, Smelter, Storage, Depot
 
 Save/Load
 ---------

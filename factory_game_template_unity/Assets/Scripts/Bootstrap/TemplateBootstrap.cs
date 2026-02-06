@@ -129,6 +129,12 @@ public class TemplateBootstrap : MonoBehaviour
         GameObject storage = CreateBuildablePrefab("Storage", new Vector3(2f, 2f, 2f), new Color(0.6f, 0.6f, 0.6f, 1f));
         storage.AddComponent<StorageContainer>();
 
+        GameObject depot = CreateBuildablePrefab("Depot", new Vector3(1.8f, 1.2f, 1.8f), new Color(0.25f, 0.3f, 0.55f, 1f));
+        StorageContainer depotStorage = depot.AddComponent<StorageContainer>();
+        depotStorage.capacity = 200;
+        depotStorage.isBuildDepot = true;
+        AddDepotModel(depot);
+
         AddChimney(smelter, new Vector3(0.5f, 1.2f, 0.5f));
 
         RegisterPrefab(catalog, library.transform, conveyor, new List<BuildCost>
@@ -149,6 +155,11 @@ public class TemplateBootstrap : MonoBehaviour
         {
             new BuildCost(ItemTypes.IronOre, 4),
             new BuildCost(ItemTypes.Limestone, 4)
+        });
+        RegisterPrefab(catalog, library.transform, depot, new List<BuildCost>
+        {
+            new BuildCost(ItemTypes.IronOre, 6),
+            new BuildCost(ItemTypes.Limestone, 6)
         });
     }
 
@@ -234,6 +245,43 @@ public class TemplateBootstrap : MonoBehaviour
         }
     }
 
+    private static void AddDepotModel(GameObject target)
+    {
+        GameObject crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        crate.name = "Crate";
+        crate.transform.SetParent(target.transform, false);
+        crate.transform.localScale = new Vector3(0.8f, 0.6f, 0.8f);
+        crate.transform.localPosition = new Vector3(-0.35f, 0.4f, 0.2f);
+        Renderer crateRenderer = crate.GetComponent<Renderer>();
+        if (crateRenderer != null)
+        {
+            crateRenderer.material.color = new Color(0.5f, 0.35f, 0.2f, 1f);
+        }
+
+        GameObject beacon = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        beacon.name = "Beacon";
+        beacon.transform.SetParent(target.transform, false);
+        beacon.transform.localScale = new Vector3(0.2f, 0.8f, 0.2f);
+        beacon.transform.localPosition = new Vector3(0.5f, 0.6f, -0.4f);
+        Renderer beaconRenderer = beacon.GetComponent<Renderer>();
+        if (beaconRenderer != null)
+        {
+            beaconRenderer.material.color = new Color(0.9f, 0.8f, 0.2f, 1f);
+        }
+
+        Collider crateCol = crate.GetComponent<Collider>();
+        if (crateCol != null)
+        {
+            Destroy(crateCol);
+        }
+
+        Collider beaconCol = beacon.GetComponent<Collider>();
+        if (beaconCol != null)
+        {
+            Destroy(beaconCol);
+        }
+    }
+
     private void SpawnResourceNodes()
     {
         if (FindObjectsOfType<ResourceNode>().Length > 0)
@@ -288,6 +336,8 @@ public class TemplateBootstrap : MonoBehaviour
         {
             renderer.material.color = new Color(0.2f, 0.2f, 0.5f, 1f);
         }
+
+        AddDepotModel(depot);
 
         _buildDepot.Add(new ItemStack(ItemTypes.IronOre, 40));
         _buildDepot.Add(new ItemStack(ItemTypes.CopperOre, 20));

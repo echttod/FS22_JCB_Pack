@@ -42,6 +42,56 @@ public class ConveyorBelt : MonoBehaviour, IItemInput, IPlacementAware
         RefreshTarget();
     }
 
+    public ConveyorItemState[] GetItemStates()
+    {
+        ConveyorItemState[] states = new ConveyorItemState[_items.Count];
+        for (int i = 0; i < _items.Count; i++)
+        {
+            states[i] = new ConveyorItemState(_items[i].stack.id, _items[i].progress);
+        }
+        return states;
+    }
+
+    public void RestoreItems(ConveyorItemState[] states)
+    {
+        ClearItems();
+        if (states == null || states.Length == 0)
+        {
+            return;
+        }
+
+        EnsurePoints();
+        float length = GetLength();
+        Vector3 start = inputPoint.position;
+        Vector3 dir = (outputPoint.position - inputPoint.position).normalized;
+
+        List<ConveyorItemState> sorted = new List<ConveyorItemState>(states);
+        sorted.Sort((a, b) => a.progress.CompareTo(b.progress));
+        foreach (ConveyorItemState state in sorted)
+        {
+            if (string.IsNullOrEmpty(state.id))
+            {
+                continue;
+            }
+
+            float progress = Mathf.Clamp(state.progress, 0f, length);
+            ItemStack stack = new ItemStack(state.id, 1);
+            MovingItem item = new MovingItem
+            {
+                stack = stack,
+                progress = progress,
+                visual = CreateVisual(stack)
+            };
+
+            if (item.visual != null)
+            {
+                item.visual.transform.position = start + dir * progress;
+            }
+
+            _items.Add(item);
+        }
+    }
+
     public bool TryInsert(ItemStack stack)
     {
         if (!stack.IsValid)
@@ -155,6 +205,18 @@ public class ConveyorBelt : MonoBehaviour, IItemInput, IPlacementAware
     private void RefreshTarget()
     {
         _target = ItemLinker.FindInput(outputPoint, connectDistance, connectMask, transform);
+    }
+
+    private void ClearItems()
+    {
+        for (int i = 0; i < _items.Count; i++)
+        {
+            if (_items[i].visual != null)
+            {
+                Destroy(_items[i].visual);
+            }
+        }
+        _items.Clear();
     }
 
     private GameObject CreateVisual(ItemStack stack)

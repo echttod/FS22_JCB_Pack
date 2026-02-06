@@ -33,6 +33,7 @@ public class BuildSystem : MonoBehaviour
 
     public bool IsBuildMode => _buildMode;
     public string SelectedId => _ids.Length > 0 ? _ids[_selectedIndex] : string.Empty;
+    public Vector3 PlacementPosition => _ghost != null ? _ghost.transform.position : Vector3.zero;
 
     public string[] GetIds()
     {
@@ -175,7 +176,7 @@ public class BuildSystem : MonoBehaviour
         if (requireCosts && costProvider != null)
         {
             List<BuildCost> costs = GetSelectedCosts();
-            if (!costProvider.Spend(costs))
+            if (!costProvider.Spend(costs, PlacementPosition))
             {
                 return;
             }
@@ -188,6 +189,10 @@ public class BuildSystem : MonoBehaviour
         placed.SetActive(true);
         EnsureBuildableId(placed);
         NotifyPlaced(placed);
+        if (costProvider != null)
+        {
+            costProvider.Refresh();
+        }
     }
 
     private void RebuildGhost()
@@ -270,7 +275,7 @@ public class BuildSystem : MonoBehaviour
             return true;
         }
 
-        return costProvider.CanAfford(GetSelectedCosts());
+        return costProvider.CanAfford(GetSelectedCosts(), PlacementPosition);
     }
 
     private float ComputeYOffset(GameObject target)
